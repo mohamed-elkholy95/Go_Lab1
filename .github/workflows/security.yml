@@ -1,0 +1,207 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [main, develop, 'claude/**']
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run security scans daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+# Prevent concurrent security scans
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Secret Scanning
+  secret-scan:
+    name: 🔐 Secret Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for comprehensive scanning
+
+      - name: TruffleHog Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # Dependency Vulnerability Scanning
+  dependency-scan:
+    name: 📦 Dependency Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run npm audit
+        run: |
+          echo "🔍 Running npm audit..."
+          npm audit --audit-level=moderate || true
+          echo ""
+          echo "📊 Generating audit report..."
+          npm audit --json > audit-report.json || true
+
+      - name: Check for known vulnerabilities
+        run: |
+          echo "🔍 Checking for critical vulnerabilities..."
+          npm audit --audit-level=critical
+
+  # SAST - Static Application Security Testing
+  sast-scan:
+    name: 🔬 SAST Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, typescript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  # Semgrep SAST
+  semgrep-scan:
+    name: 🔍 Semgrep Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/typescript
+            p/nodejs
+
+  # License Compliance
+  license-check:
+    name: ⚖️ License Compliance
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Check licenses
+        run: |
+          echo "⚖️ Checking dependency licenses..."
+          npx license-checker --summary || true
+          echo ""
+          echo "📋 Generating detailed license report..."
+          npx license-checker --json > licenses.json || true
+
+  # SBOM Generation (Software Bill of Materials)
+  sbom-generation:
+    name: 📋 SBOM Generation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate SBOM
+        run: |
+          echo "📋 Generating Software Bill of Materials..."
+          npx @cyclonedx/cyclonedx-npm --output-file sbom.json || true
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
+          retention-days: 90
+
+  # Infrastructure as Code Security
+  iac-scan:
+    name: 🏗️ IaC Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Scan for IaC security issues
+        run: |
+          echo "🔍 Scanning Infrastructure as Code..."
+          # Check for Dockerfile security issues
+          if [ -f Dockerfile ]; then
+            docker run --rm -i hadolint/hadolint < Dockerfile || true
+          fi
+
+  # Security Summary
+  security-summary:
+    name: 📊 Security Summary
+    runs-on: ubuntu-latest
+    needs: [secret-scan, dependency-scan, sast-scan, semgrep-scan, license-check, sbom-generation, iac-scan]
+    if: always()
+    steps:
+      - name: Security scan summary
+        run: |
+          echo "🔒 Security Scanning Complete"
+          echo "=============================="
+          echo ""
+          echo "✅ Secret scanning: ${{ needs.secret-scan.result }}"
+          echo "✅ Dependency scanning: ${{ needs.dependency-scan.result }}"
+          echo "✅ SAST (CodeQL): ${{ needs.sast-scan.result }}"
+          echo "✅ SAST (Semgrep): ${{ needs.semgrep-scan.result }}"
+          echo "✅ License compliance: ${{ needs.license-check.result }}"
+          echo "✅ SBOM generation: ${{ needs.sbom-generation.result }}"
+          echo "✅ IaC scanning: ${{ needs.iac-scan.result }}"
+          echo ""
+          if [ "${{ needs.secret-scan.result }}" != "success" ] || \
+             [ "${{ needs.dependency-scan.result }}" != "success" ] || \
+             [ "${{ needs.sast-scan.result }}" != "success" ]; then
+            echo "⚠️  Some security checks failed. Please review the logs."
+          else
+            echo "🎉 All security checks passed!"
+          fi

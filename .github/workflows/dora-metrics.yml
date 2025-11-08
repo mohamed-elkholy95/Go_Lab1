@@ -1,0 +1,254 @@
+name: DORA Metrics Tracking
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    types: [opened, closed]
+  workflow_dispatch:
+    inputs:
+      report_type:
+        description: 'Type of report to generate'
+        required: true
+        type: choice
+        options:
+          - weekly
+          - monthly
+          - quarterly
+
+jobs:
+  # Track Deployment Frequency
+  deployment-frequency:
+    name: 📊 Deployment Frequency
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    steps:
+      - name: Record deployment
+        run: |
+          echo "📈 DORA Metric: Deployment Frequency"
+          echo "===================================="
+          echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          echo "Environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Actor: ${{ github.actor }}"
+
+          # In a real implementation, this would be sent to a metrics database
+          # Example: curl -X POST https://metrics.example.com/deployments \
+          #   -H "Content-Type: application/json" \
+          #   -d '{"timestamp":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","environment":"production"}'
+
+  # Track Lead Time for Changes
+  lead-time:
+    name: ⏱️ Lead Time for Changes
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate lead time
+        run: |
+          echo "⏱️ DORA Metric: Lead Time for Changes"
+          echo "====================================="
+
+          # Get commit timestamp
+          COMMIT_TIME=$(git show -s --format=%ct ${{ github.sha }})
+
+          # Get current timestamp
+          DEPLOY_TIME=$(date +%s)
+
+          # Calculate lead time in minutes
+          LEAD_TIME_SECONDS=$((DEPLOY_TIME - COMMIT_TIME))
+          LEAD_TIME_MINUTES=$((LEAD_TIME_SECONDS / 60))
+          LEAD_TIME_HOURS=$((LEAD_TIME_MINUTES / 60))
+
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Commit Time: $(date -d @$COMMIT_TIME)"
+          echo "Deploy Time: $(date -d @$DEPLOY_TIME)"
+          echo "Lead Time: ${LEAD_TIME_MINUTES} minutes (${LEAD_TIME_HOURS} hours)"
+
+          # Performance benchmarks (from DORA research)
+          if [ $LEAD_TIME_HOURS -lt 1 ]; then
+            echo "🏆 Performance Level: ELITE (< 1 hour)"
+          elif [ $LEAD_TIME_HOURS -lt 24 ]; then
+            echo "⭐ Performance Level: HIGH (< 1 day)"
+          elif [ $LEAD_TIME_HOURS -lt 168 ]; then
+            echo "📊 Performance Level: MEDIUM (< 1 week)"
+          else
+            echo "📉 Performance Level: LOW (> 1 week)"
+          fi
+
+  # Track Change Failure Rate
+  change-failure-rate:
+    name: 🔥 Change Failure Rate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate failure rate
+        run: |
+          echo "🔥 DORA Metric: Change Failure Rate"
+          echo "==================================="
+
+          # Count deployments in the last 30 days
+          DEPLOY_COUNT=$(git log --since="30 days ago" --oneline --grep="deploy" --grep="release" -i | wc -l)
+
+          # In a real implementation, you would track actual failures
+          # For now, we'll show the concept
+          echo "Deployments (last 30 days): $DEPLOY_COUNT"
+          echo "Failed Deployments: [Track via incident management system]"
+          echo ""
+          echo "Performance Targets:"
+          echo "  🏆 Elite: 0-15% failure rate"
+          echo "  ⭐ High: 16-30% failure rate"
+          echo "  📊 Medium: 31-45% failure rate"
+          echo "  📉 Low: 46%+ failure rate"
+
+  # Track Mean Time to Recovery (MTTR)
+  mttr-tracking:
+    name: 🔧 Mean Time to Recovery
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: MTTR analysis
+        run: |
+          echo "🔧 DORA Metric: Mean Time to Recovery"
+          echo "====================================="
+          echo ""
+          echo "MTTR is tracked through incident response:"
+          echo "  1. Incident detected (alert/monitoring)"
+          echo "  2. Incident acknowledged (on-call engineer)"
+          echo "  3. Investigation begins"
+          echo "  4. Fix deployed"
+          echo "  5. Service restored"
+          echo ""
+          echo "Performance Targets:"
+          echo "  🏆 Elite: < 1 hour"
+          echo "  ⭐ High: < 1 day"
+          echo "  📊 Medium: < 1 week"
+          echo "  📉 Low: > 1 week"
+          echo ""
+          echo "Recommended tools for MTTR tracking:"
+          echo "  - PagerDuty / Opsgenie for incident management"
+          echo "  - Datadog / New Relic for monitoring"
+          echo "  - Statuspage for customer communication"
+
+  # Generate DORA Report
+  generate-report:
+    name: 📋 Generate DORA Report
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    needs: [change-failure-rate, mttr-tracking]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate comprehensive report
+        run: |
+          echo "# DORA Metrics Report" > dora-report.md
+          echo "Generated: $(date -u)" >> dora-report.md
+          echo "Report Type: ${{ github.event.inputs.report_type }}" >> dora-report.md
+          echo "" >> dora-report.md
+
+          echo "## Four Key Metrics" >> dora-report.md
+          echo "" >> dora-report.md
+
+          echo "### 1. Deployment Frequency" >> dora-report.md
+          echo "**Definition:** How often code is deployed to production" >> dora-report.md
+          echo "" >> dora-report.md
+          DEPLOY_COUNT=$(git log --since="30 days ago" --oneline origin/main 2>/dev/null | wc -l || echo "0")
+          echo "- Deployments (last 30 days): **$DEPLOY_COUNT**" >> dora-report.md
+          AVG_PER_DAY=$(echo "scale=2; $DEPLOY_COUNT / 30" | bc || echo "0")
+          echo "- Average per day: **$AVG_PER_DAY**" >> dora-report.md
+          echo "" >> dora-report.md
+
+          echo "### 2. Lead Time for Changes" >> dora-report.md
+          echo "**Definition:** Time from commit to production deployment" >> dora-report.md
+          echo "- Latest deployment: CI/CD automation provides fast feedback" >> dora-report.md
+          echo "- Target: < 1 hour (Elite) | < 1 day (High)" >> dora-report.md
+          echo "" >> dora-report.md
+
+          echo "### 3. Change Failure Rate" >> dora-report.md
+          echo "**Definition:** % of deployments causing production failures" >> dora-report.md
+          echo "- Track via incident management system" >> dora-report.md
+          echo "- Target: 0-15% (Elite) | 16-30% (High)" >> dora-report.md
+          echo "" >> dora-report.md
+
+          echo "### 4. Mean Time to Recovery (MTTR)" >> dora-report.md
+          echo "**Definition:** Time to restore service after failure" >> dora-report.md
+          echo "- Track via incident response platform" >> dora-report.md
+          echo "- Target: < 1 hour (Elite) | < 1 day (High)" >> dora-report.md
+          echo "" >> dora-report.md
+
+          echo "## Performance Classification" >> dora-report.md
+          echo "" >> dora-report.md
+          echo "| Level | Deploy Freq | Lead Time | Failure Rate | MTTR |" >> dora-report.md
+          echo "|-------|------------|-----------|--------------|------|" >> dora-report.md
+          echo "| 🏆 Elite | Multiple/day | < 1 hour | 0-15% | < 1 hour |" >> dora-report.md
+          echo "| ⭐ High | Daily-Weekly | 1 day-1 week | 16-30% | < 1 day |" >> dora-report.md
+          echo "| 📊 Medium | Weekly-Monthly | 1 week-1 month | 31-45% | 1 day-1 week |" >> dora-report.md
+          echo "| 📉 Low | Monthly+ | 1-6 months | 46%+ | > 1 week |" >> dora-report.md
+          echo "" >> dora-report.md
+
+          echo "## Recommendations" >> dora-report.md
+          echo "" >> dora-report.md
+          echo "### To Improve Deployment Frequency:" >> dora-report.md
+          echo "- ✅ Automate deployment pipeline" >> dora-report.md
+          echo "- ✅ Implement trunk-based development" >> dora-report.md
+          echo "- ✅ Use feature flags for gradual rollouts" >> dora-report.md
+          echo "" >> dora-report.md
+
+          echo "### To Reduce Lead Time:" >> dora-report.md
+          echo "- ✅ Parallelize CI/CD pipeline stages" >> dora-report.md
+          echo "- ✅ Optimize test execution" >> dora-report.md
+          echo "- ✅ Implement effective caching" >> dora-report.md
+          echo "" >> dora-report.md
+
+          echo "### To Lower Change Failure Rate:" >> dora-report.md
+          echo "- ✅ Increase automated test coverage" >> dora-report.md
+          echo "- ✅ Implement progressive delivery (canary deployments)" >> dora-report.md
+          echo "- ✅ Use comprehensive staging environments" >> dora-report.md
+          echo "" >> dora-report.md
+
+          echo "### To Improve MTTR:" >> dora-report.md
+          echo "- ✅ Automate rollback procedures" >> dora-report.md
+          echo "- ✅ Implement comprehensive observability" >> dora-report.md
+          echo "- ✅ Practice incident response regularly" >> dora-report.md
+          echo "" >> dora-report.md
+
+          cat dora-report.md
+
+      - name: Upload DORA report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dora-metrics-report-${{ github.event.inputs.report_type }}
+          path: dora-report.md
+          retention-days: 90
+
+  # Summary
+  metrics-summary:
+    name: 📊 Metrics Summary
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [deployment-frequency, lead-time]
+    steps:
+      - name: Summary
+        run: |
+          echo "📊 DORA Metrics Tracking Summary"
+          echo "================================"
+          echo ""
+          echo "✅ Deployment frequency: ${{ needs.deployment-frequency.result }}"
+          echo "✅ Lead time tracking: ${{ needs.lead-time.result }}"
+          echo ""
+          echo "💡 To generate a full report, use the manual workflow dispatch:"
+          echo "   Actions → DORA Metrics Tracking → Run workflow"
+          echo ""
+          echo "📚 Learn more: https://dora.dev"

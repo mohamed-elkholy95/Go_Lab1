@@ -1,0 +1,255 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main # Production deployment
+      - develop # Staging deployment
+  workflow_dispatch: # Manual deployment trigger
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+# Ensure only one deployment runs at a time per environment
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Pre-deployment validation
+  validate:
+    name: 🔍 Pre-Deployment Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      environment: ${{ steps.determine-env.outputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine environment
+        id: determine-env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/develop" ]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          else
+            echo "environment=preview" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Type check
+        run: npx astro check
+
+      - name: Build check
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/test
+          AUTH_SECRET: test-secret-key-min-32-characters-long-for-build
+          RESEND_API_KEY: re_test_key
+          RESEND_FROM_EMAIL: noreply@test.com
+          SITE_URL: http://localhost:4321
+          PUBLIC_SITE_NAME: Pythoughts
+
+  # Deploy to Vercel (if using Vercel)
+  deploy-vercel:
+    name: 🚀 Deploy to Vercel
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: false # Enable this by setting to true and configuring secrets
+    environment:
+      name: ${{ needs.validate.outputs.environment }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        id: deploy
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: ${{ needs.validate.outputs.environment == 'production' && '--prod' || '' }}
+
+  # Deploy to Railway (if using Railway)
+  deploy-railway:
+    name: 🚂 Deploy to Railway
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: false # Enable this by setting to true and configuring secrets
+    environment:
+      name: ${{ needs.validate.outputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        run: railway up
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  # Deploy to Render (if using Render)
+  deploy-render:
+    name: 🎨 Deploy to Render
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: false # Enable this by setting to true and configuring secrets
+    environment:
+      name: ${{ needs.validate.outputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Trigger Render deployment
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+
+  # Generic deployment (customize for your platform)
+  deploy-custom:
+    name: 🚀 Deploy
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: ${{ needs.validate.outputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build application
+        run: npm run build
+        env:
+          # These should be configured as environment secrets
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
+          SITE_URL: ${{ secrets.SITE_URL }}
+          PUBLIC_SITE_NAME: ${{ secrets.PUBLIC_SITE_NAME }}
+
+      - name: Deployment notification
+        run: |
+          echo "🚀 Deployment to ${{ needs.validate.outputs.environment }} prepared"
+          echo "📦 Build artifacts ready in dist/"
+          echo ""
+          echo "To complete deployment, configure one of the deployment options above"
+          echo "or add your custom deployment steps here."
+
+  # Database migration (run before deployment)
+  migrate-database:
+    name: 🗄️ Database Migration
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: false # Enable when ready for automated migrations
+    environment:
+      name: ${{ needs.validate.outputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run migrations
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+  # Post-deployment validation
+  post-deployment-tests:
+    name: ✅ Post-Deployment Tests
+    needs: [validate, deploy-custom]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: success()
+    steps:
+      - name: Health check
+        run: |
+          echo "🏥 Running health checks..."
+          # Add your health check endpoint here
+          # curl -f https://your-app.com/health || exit 1
+
+      - name: Smoke tests
+        run: |
+          echo "🔥 Running smoke tests..."
+          # Add critical path tests here
+
+  # Deployment summary and notifications
+  deployment-summary:
+    name: 📊 Deployment Summary
+    needs: [validate, deploy-custom, post-deployment-tests]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Deployment summary
+        run: |
+          echo "🚀 Deployment Summary"
+          echo "===================="
+          echo ""
+          echo "Environment: ${{ needs.validate.outputs.environment }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Actor: ${{ github.actor }}"
+          echo ""
+          echo "Status:"
+          echo "  ✅ Validation: ${{ needs.validate.result }}"
+          echo "  ✅ Deployment: ${{ needs.deploy-custom.result }}"
+          echo "  ✅ Post-deployment tests: ${{ needs.post-deployment-tests.result }}"
+          echo ""
+          if [ "${{ needs.deploy-custom.result }}" == "success" ]; then
+            echo "🎉 Deployment completed successfully!"
+          else
+            echo "❌ Deployment failed. Check the logs for details."
+          fi
+
+      # Optional: Send Slack notification
+      # - name: Slack notification
+      #   uses: 8398a7/action-slack@v3
+      #   with:
+      #     status: ${{ job.status }}
+      #     text: 'Deployment to ${{ needs.validate.outputs.environment }} ${{ job.status }}'
+      #     webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+      #   if: always()

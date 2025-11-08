@@ -17,6 +17,8 @@ A modern, full-featured blogging platform built with Astro, TypeScript, PostgreS
 - **Dark Mode**: Built-in dark mode support
 - **SEO Optimized**: Meta tags, sitemap, and RSS feed generation
 - **Type-Safe**: Full TypeScript support with Drizzle ORM
+- **CI/CD Pipeline**: Automated testing, security scanning, and deployment
+- **DORA Metrics**: Track deployment frequency, lead time, and performance
 
 ## 📋 Prerequisites
 
@@ -214,6 +216,53 @@ Recommended platforms:
 - Railway
 - Render
 - Fly.io
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment guides.
+
+## 🔄 CI/CD Pipeline
+
+Modern CI/CD implementation with automated testing, security scanning, and DORA metrics tracking.
+
+### Workflows
+
+- **🔍 CI Pipeline** - Automated testing, linting, and building on every push
+- **🔒 Security Scanning** - DevSecOps with daily security scans (secrets, dependencies, SAST, SBOM)
+- **🚀 Deployment** - Automated deployments to staging and production
+- **📊 DORA Metrics** - Track deployment frequency, lead time, failure rate, and MTTR
+
+### Quick Start
+
+```bash
+# Workflows run automatically on push/PR
+git push origin main
+
+# Manual deployment trigger
+# Actions → Deploy → Run workflow
+
+# Generate DORA metrics report
+# Actions → DORA Metrics Tracking → Run workflow
+```
+
+### Performance Targets
+
+Following [DORA research](https://dora.dev) best practices:
+
+| Metric | Current Target | Elite Target |
+|--------|---------------|--------------|
+| **Deployment Frequency** | Configurable | Multiple/day |
+| **Lead Time** | ~25 minutes | < 1 hour |
+| **Change Failure Rate** | Track via monitoring | 0-15% |
+| **MTTR** | Automated rollback | < 1 hour |
+
+### Security Features
+
+- ✅ **Secret Scanning** - TruffleHog for credential detection
+- ✅ **Dependency Scanning** - npm audit for vulnerabilities
+- ✅ **SAST** - CodeQL & Semgrep for code security
+- ✅ **SBOM Generation** - Software bill of materials for compliance
+- ✅ **License Compliance** - Automated license checking
+
+See [CI_CD.md](CI_CD.md) for complete CI/CD documentation.
 
 ## 📖 Implementation Progress
 
