@@ -202,6 +202,78 @@ npm run db:push          # Push schema (development)
 npm run db:studio        # Open Drizzle Studio
 ```
 
+## 🔐 Git Hooks - Pre-Push Validation
+
+Automated validation system that runs before every push to ensure 100% safe commits.
+
+### Features
+
+- ✅ **8 Automated Checks** - TypeScript, linting, security, build, tests, secrets, dependencies, complexity
+- ✅ **Fast Execution** - Typical run time: 1-4 minutes
+- ✅ **Zero Broken Builds** - Catches errors before they reach GitHub
+- ✅ **Security First** - Prevents vulnerable code and leaked secrets
+- ✅ **Fully Configurable** - Enable/disable checks via `.githooks.config`
+
+### Installation
+
+```bash
+# Install git hooks (one-time setup)
+./scripts/install-hooks.sh
+```
+
+### Usage
+
+Hooks run automatically before every push:
+
+```bash
+git push origin your-branch
+
+# Output:
+# ╔══════════════════════════════════════════╗
+# ║      PRE-PUSH VALIDATION                 ║
+# ╚══════════════════════════════════════════╝
+# ▶ Running: TypeScript Type Checking
+# ✓ TypeScript Type Checking passed
+# ▶ Running: Security Vulnerability Scan
+# ✓ Security Vulnerability Scan passed
+# ... (more checks)
+# ✓ ALL CHECKS PASSED ✓
+```
+
+### Validation Checks
+
+| Check | Purpose | Blocks Push |
+|-------|---------|-------------|
+| **TypeScript** | Type errors | ✓ |
+| **ESLint** | Code quality | ✓ |
+| **Security Scan** | Vulnerabilities | ✓ (Critical only) |
+| **Build** | Build errors | ✓ |
+| **Dependencies** | Missing/broken deps | ✓ |
+| **Tests** | Test failures | ✓ |
+| **Secrets** | Leaked credentials | ✓ |
+| **Complexity** | Code quality | ✗ (Info only) |
+
+### Configuration
+
+Edit `.githooks.config` to customize:
+
+```bash
+# Disable specific checks
+ENABLE_BUILD_CHECK=false
+
+# Allow skipping with --no-verify
+ALLOW_SKIP=true
+```
+
+### Skipping Checks (Emergency Only)
+
+```bash
+# Skip ALL validation (not recommended)
+git push --no-verify
+```
+
+See [GIT_HOOKS.md](GIT_HOOKS.md) for complete documentation.
+
 ## 🚀 Deployment
 
 The application uses hybrid rendering and requires:
