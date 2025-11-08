@@ -17,6 +17,7 @@ const navItems = [
   { href: '/admin/categories', label: 'Categories', icon: '📁' },
   { href: '/admin/tags', label: 'Tags', icon: '🏷️' },
   { href: '/admin/users', label: 'Users', icon: '👥' },
+  { href: '/search', label: 'Search', icon: '🔍' },
   { href: '/admin/settings', label: 'Settings', icon: '⚙️' },
 ];
 ---
@@ -25,7 +26,7 @@ const navItems = [
   <div class="min-h-screen bg-slate-50 dark:bg-slate-900">
     <div class="flex">
       <!-- Sidebar -->
-      <aside class="w-64 bg-white dark:bg-slate-800 min-h-screen border-r border-slate-200 dark:border-slate-700">
+      <aside class="w-64 bg-white dark:bg-slate-800 min-h-[calc(100vh-4rem)] border-r border-slate-200 dark:border-slate-700 sticky top-16">
         <div class="p-6">
           <a href="/" class="text-2xl font-bold text-primary-600 dark:text-primary-400">
             Pythoughts

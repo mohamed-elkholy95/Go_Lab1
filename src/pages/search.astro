@@ -1,0 +1,88 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+const user = Astro.locals.user;
+---
+
+<BaseLayout title="Search - Pythoughts">
+  <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold mb-2">Search</h1>
+      <p class="text-gray-600 dark:text-gray-400">
+        Search across all published posts, categories, and tags
+      </p>
+    </div>
+
+    <div id="search" class="mb-8"></div>
+
+    <div class="text-sm text-gray-500 dark:text-gray-400 text-center mt-8">
+      <p>Powered by Pagefind - Fast static search</p>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  // @ts-ignore
+  import { PagefindUI } from '@pagefind/default-ui';
+
+  window.addEventListener('DOMContentLoaded', () => {
+    new PagefindUI({
+      element: '#search',
+      showSubResults: true,
+      showImages: false,
+      excerptLength: 30,
+      resetStyles: false,
+    });
+  });
+</script>
+
+<style is:global>
+  /* Pagefind UI Customization */
+  .pagefind-ui__search-input {
+    @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg;
+    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400;
+    @apply placeholder-gray-500 dark:placeholder-gray-400;
+  }
+
+  .pagefind-ui__result {
+    @apply border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4;
+    @apply bg-white dark:bg-gray-800;
+    @apply hover:border-blue-500 dark:hover:border-blue-400 transition-colors;
+  }
+
+  .pagefind-ui__result-title {
+    @apply text-xl font-semibold mb-2;
+    @apply text-gray-900 dark:text-gray-100;
+  }
+
+  .pagefind-ui__result-link {
+    @apply text-blue-600 dark:text-blue-400 hover:underline;
+  }
+
+  .pagefind-ui__result-excerpt {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+
+  .pagefind-ui__message {
+    @apply text-gray-600 dark:text-gray-400 text-center py-8;
+  }
+
+  .pagefind-ui__button {
+    @apply px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg;
+    @apply hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors;
+  }
+
+  .pagefind-ui__search-clear {
+    @apply text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200;
+  }
+
+  mark {
+    @apply bg-yellow-200 dark:bg-yellow-900 text-gray-900 dark:text-gray-100;
+  }
+</style>
+
+<link href="/_pagefind/pagefind-ui.css" rel="stylesheet" />
+<script is:inline src="/_pagefind/pagefind-ui.js"></script>
