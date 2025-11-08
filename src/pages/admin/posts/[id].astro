@@ -1,0 +1,337 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { getPostById } from '@/lib/services/posts';
+import { getCategories, getTags } from '@/lib/services/categories';
+
+export const prerender = false;
+
+const { id } = Astro.params;
+
+// Fetch post if editing
+let post = null;
+if (id && id !== 'new') {
+  const postData = await getPostById(id);
+  if (!postData) {
+    return Astro.redirect('/admin/posts');
+  }
+  post = postData;
+
+  // Check if user owns the post or is admin
+  const user = Astro.locals.user;
+  if (post.post.authorId !== user?.id && user?.role !== 'admin') {
+    return Astro.redirect('/unauthorized');
+  }
+}
+
+// Fetch categories and tags
+const categoriesData = await getCategories();
+const tagsData = await getTags();
+
+const isEditing = !!post;
+const title = isEditing ? `Edit Post: ${post.post.title}` : 'Create New Post';
+---
+
+<AdminLayout title={title}>
+  <div class="max-w-4xl">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold mb-2">{isEditing ? 'Edit Post' : 'Create New Post'}</h1>
+      <p class="text-slate-600 dark:text-slate-400">
+        {isEditing ? 'Update your post details below' : 'Fill in the details to create a new post'}
+      </p>
+    </div>
+
+    <form id="post-form" class="space-y-6">
+      <!-- Title -->
+      <div class="card">
+        <label for="title" class="block text-sm font-medium mb-2">
+          Title <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          required
+          value={isEditing ? post.post.title : ''}
+          class="input text-2xl font-bold"
+          placeholder="Enter post title..."
+        />
+      </div>
+
+      <!-- Slug -->
+      <div class="card">
+        <label for="slug" class="block text-sm font-medium mb-2">
+          Slug <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="slug"
+          name="slug"
+          required
+          value={isEditing ? post.post.slug : ''}
+          class="input font-mono"
+          placeholder="post-slug-here"
+        />
+        <p class="text-xs text-slate-500 mt-1">
+          URL-friendly version of the title (lowercase, hyphens only)
+        </p>
+      </div>
+
+      <!-- Content -->
+      <div class="card">
+        <label for="content" class="block text-sm font-medium mb-2">
+          Content (Markdown) <span class="text-red-500">*</span>
+        </label>
+        <textarea
+          id="content"
+          name="content"
+          required
+          rows="20"
+          class="input font-mono"
+          placeholder="Write your post content in Markdown..."
+        >{isEditing ? post.post.content : ''}</textarea>
+        <p class="text-xs text-slate-500 mt-1">
+          Supports Markdown formatting
+        </p>
+      </div>
+
+      <!-- Excerpt -->
+      <div class="card">
+        <label for="excerpt" class="block text-sm font-medium mb-2">
+          Excerpt
+        </label>
+        <textarea
+          id="excerpt"
+          name="excerpt"
+          rows="3"
+          maxlength="500"
+          class="input"
+          placeholder="Brief summary of your post..."
+        >{isEditing ? post.post.excerpt || '' : ''}</textarea>
+        <p class="text-xs text-slate-500 mt-1">
+          Short summary for post listings (max 500 characters)
+        </p>
+      </div>
+
+      <!-- Description (for SEO) -->
+      <div class="card">
+        <label for="description" class="block text-sm font-medium mb-2">
+          Meta Description (SEO)
+        </label>
+        <textarea
+          id="description"
+          name="description"
+          rows="2"
+          maxlength="300"
+          class="input"
+          placeholder="SEO description..."
+        >{isEditing ? post.post.description || '' : ''}</textarea>
+        <p class="text-xs text-slate-500 mt-1">
+          Search engine description (max 300 characters)
+        </p>
+      </div>
+
+      <!-- Featured Image -->
+      <div class="card">
+        <label for="featuredImage" class="block text-sm font-medium mb-2">
+          Featured Image URL
+        </label>
+        <input
+          type="url"
+          id="featuredImage"
+          name="featuredImage"
+          value={isEditing ? post.post.featuredImage || '' : ''}
+          class="input"
+          placeholder="https://example.com/image.jpg"
+        />
+        <p class="text-xs text-slate-500 mt-1">
+          Full URL to the featured image
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Categories -->
+        <div class="card">
+          <label class="block text-sm font-medium mb-2">
+            Categories
+          </label>
+          <div class="space-y-2 max-h-48 overflow-y-auto">
+            {categoriesData.length === 0 ? (
+              <p class="text-sm text-slate-500">No categories available</p>
+            ) : (
+              categoriesData.map(({ category }) => (
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 p-2 rounded">
+                  <input
+                    type="checkbox"
+                    name="categories"
+                    value={category.id}
+                    checked={isEditing && post.categories.some((c) => c.id === category.id)}
+                    class="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <span class="text-sm">{category.name}</span>
+                </label>
+              ))
+            )}
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="card">
+          <label class="block text-sm font-medium mb-2">
+            Tags
+          </label>
+          <div class="space-y-2 max-h-48 overflow-y-auto">
+            {tagsData.length === 0 ? (
+              <p class="text-sm text-slate-500">No tags available</p>
+            ) : (
+              tagsData.map(({ tag }) => (
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 p-2 rounded">
+                  <input
+                    type="checkbox"
+                    name="tags"
+                    value={tag.id}
+                    checked={isEditing && post.tags.some((t) => t.id === tag.id)}
+                    class="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <span class="text-sm">{tag.name}</span>
+                </label>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="card">
+        <label for="status" class="block text-sm font-medium mb-2">
+          Status <span class="text-red-500">*</span>
+        </label>
+        <select id="status" name="status" required class="input">
+          <option value="draft" selected={!isEditing || post.post.status === 'draft'}>
+            Draft
+          </option>
+          <option value="published" selected={isEditing && post.post.status === 'published'}>
+            Published
+          </option>
+          <option value="archived" selected={isEditing && post.post.status === 'archived'}>
+            Archived
+          </option>
+        </select>
+      </div>
+
+      <!-- Error/Success Messages -->
+      <div id="error-message" class="hidden p-4 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 rounded-lg">
+      </div>
+
+      <div id="success-message" class="hidden p-4 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 rounded-lg">
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-4">
+        <button type="submit" class="btn btn-primary" id="submit-btn">
+          {isEditing ? 'Update Post' : 'Create Post'}
+        </button>
+        <a href="/admin/posts" class="btn btn-outline">
+          Cancel
+        </a>
+        {isEditing && (
+          <button
+            type="button"
+            onclick={`if(confirm('Delete this post?')) fetch('/api/posts/${post.post.id}', {method: 'DELETE'}).then(() => window.location.href = '/admin/posts')`}
+            class="btn bg-red-600 text-white hover:bg-red-700 ml-auto"
+          >
+            Delete Post
+          </button>
+        )}
+      </div>
+    </form>
+  </div>
+
+  <script define:vars={{ isEditing, postId: post?.post.id }}>
+    const form = document.getElementById('post-form');
+    const titleInput = document.getElementById('title');
+    const slugInput = document.getElementById('slug');
+    const errorMessage = document.getElementById('error-message');
+    const successMessage = document.getElementById('success-message');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // Auto-generate slug from title
+    titleInput?.addEventListener('input', (e) => {
+      if (!isEditing || !slugInput.value) {
+        const slug = e.target.value
+          .toLowerCase()
+          .trim()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/[\s_-]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+        slugInput.value = slug;
+      }
+    });
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+
+      // Get selected categories and tags
+      const categories = Array.from(document.querySelectorAll('input[name="categories"]:checked'))
+        .map(cb => cb.value);
+      const tags = Array.from(document.querySelectorAll('input[name="tags"]:checked'))
+        .map(cb => cb.value);
+
+      const data = {
+        title: formData.get('title'),
+        slug: formData.get('slug'),
+        content: formData.get('content'),
+        excerpt: formData.get('excerpt') || null,
+        description: formData.get('description') || null,
+        featuredImage: formData.get('featuredImage') || null,
+        status: formData.get('status'),
+        categoryIds: categories,
+        tagIds: tags,
+      };
+
+      try {
+        submitBtn.disabled = true;
+        submitBtn.textContent = isEditing ? 'Updating...' : 'Creating...';
+
+        const url = isEditing ? `/api/posts/${postId}` : '/api/posts';
+        const method = isEditing ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          successMessage.textContent = isEditing
+            ? 'Post updated successfully!'
+            : 'Post created successfully!';
+          successMessage.classList.remove('hidden');
+          errorMessage.classList.add('hidden');
+
+          // Redirect after short delay
+          setTimeout(() => {
+            window.location.href = '/admin/posts';
+          }, 1000);
+        } else {
+          errorMessage.textContent = result.message || 'Failed to save post';
+          errorMessage.classList.remove('hidden');
+          successMessage.classList.add('hidden');
+          submitBtn.disabled = false;
+          submitBtn.textContent = isEditing ? 'Update Post' : 'Create Post';
+        }
+      } catch (error) {
+        errorMessage.textContent = 'An error occurred. Please try again.';
+        errorMessage.classList.remove('hidden');
+        successMessage.classList.add('hidden');
+        submitBtn.disabled = false;
+        submitBtn.textContent = isEditing ? 'Update Post' : 'Create Post';
+      }
+    });
+  </script>
+</AdminLayout>

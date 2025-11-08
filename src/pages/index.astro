@@ -1,44 +1,245 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getRecentPosts, getPopularPosts } from '@/lib/services/posts';
+import { getPopularTags } from '@/lib/services/categories';
+
+export const prerender = false;
+
+// Fetch recent posts
+const recentPosts = await getRecentPosts(6);
+
+// Fetch popular posts
+const popularPosts = await getPopularPosts(3);
+
+// Fetch popular tags
+const popularTags = await getPopularTags(10);
+
+const user = Astro.locals.user;
 ---
 
 <BaseLayout title="Pythoughts - Modern Blogging Platform">
-  <div class="min-h-screen flex items-center justify-center p-4">
-    <div class="max-w-4xl mx-auto text-center space-y-8">
-      <h1 class="text-5xl md:text-7xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
-        Welcome to Pythoughts
-      </h1>
-      <p class="text-xl md:text-2xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-        A modern full-stack blogging platform built with Astro, TypeScript, PostgreSQL, and Drizzle ORM.
-      </p>
-      <div class="flex flex-wrap gap-4 justify-center">
-        <a href="/auth/login" class="btn btn-primary">
-          Get Started
-        </a>
-        <a href="/posts" class="btn btn-outline">
-          Browse Posts
-        </a>
-      </div>
-      <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-        <div class="card">
-          <h3 class="text-xl font-bold mb-2">🔒 Secure Authentication</h3>
-          <p class="text-slate-600 dark:text-slate-400">
-            Built-in authentication with Lucia Auth, email verification, and role-based access control.
-          </p>
-        </div>
-        <div class="card">
-          <h3 class="text-xl font-bold mb-2">📝 Content Management</h3>
-          <p class="text-slate-600 dark:text-slate-400">
-            Powerful admin panel for managing posts, categories, tags, and users with Markdown support.
-          </p>
-        </div>
-        <div class="card">
-          <h3 class="text-xl font-bold mb-2">⚡ High Performance</h3>
-          <p class="text-slate-600 dark:text-slate-400">
-            Hybrid rendering with Astro, database-driven content, and optional Redis caching.
-          </p>
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-br from-primary-600 to-primary-400 text-white py-20">
+      <div class="max-w-6xl mx-auto px-4 text-center">
+        <h1 class="text-5xl md:text-7xl font-bold mb-6">
+          Welcome to Pythoughts
+        </h1>
+        <p class="text-xl md:text-2xl mb-8 opacity-90 max-w-2xl mx-auto">
+          A modern full-stack blogging platform for sharing ideas and insights
+        </p>
+        <div class="flex flex-wrap gap-4 justify-center">
+          {user ? (
+            <>
+              <a href="/posts" class="btn bg-white text-primary-600 hover:bg-slate-100">
+                Browse Posts
+              </a>
+              {(user.role === 'admin' || user.role === 'author') && (
+                <a href="/admin/posts/new" class="btn bg-primary-700 text-white hover:bg-primary-800">
+                  Write a Post
+                </a>
+              )}
+            </>
+          ) : (
+            <>
+              <a href="/auth/register" class="btn bg-white text-primary-600 hover:bg-slate-100">
+                Get Started
+              </a>
+              <a href="/posts" class="btn bg-primary-700 text-white hover:bg-primary-800">
+                Browse Posts
+              </a>
+            </>
+          )}
         </div>
       </div>
-    </div>
+    </section>
+
+    <!-- Recent Posts Section -->
+    <section class="max-w-6xl mx-auto px-4 py-16">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-3xl font-bold">Recent Posts</h2>
+        <a href="/posts" class="text-primary-600 dark:text-primary-400 hover:underline">
+          View All →
+        </a>
+      </div>
+
+      {recentPosts.length === 0 ? (
+        <div class="text-center py-12 card">
+          <p class="text-xl text-slate-600 dark:text-slate-400 mb-4">
+            No posts yet. Be the first to write!
+          </p>
+          {user && (user.role === 'admin' || user.role === 'author') ? (
+            <a href="/admin/posts/new" class="btn btn-primary inline-block">
+              Create First Post
+            </a>
+          ) : (
+            <a href="/auth/register" class="btn btn-primary inline-block">
+              Sign Up to Write
+            </a>
+          )}
+        </div>
+      ) : (
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {recentPosts.map(({ post, author }) => (
+            <article class="card hover:shadow-lg transition-shadow duration-200">
+              {post.featuredImage && (
+                <img
+                  src={post.featuredImage}
+                  alt={post.title}
+                  class="w-full h-48 object-cover rounded-t-lg -mx-6 -mt-6 mb-4"
+                />
+              )}
+
+              <div class="space-y-3">
+                <h3 class="text-xl font-bold line-clamp-2">
+                  <a
+                    href={`/posts/${post.slug}`}
+                    class="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                  >
+                    {post.title}
+                  </a>
+                </h3>
+
+                {post.excerpt && (
+                  <p class="text-slate-600 dark:text-slate-400 line-clamp-3 text-sm">
+                    {post.excerpt}
+                  </p>
+                )}
+
+                <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                  {author?.avatarUrl && (
+                    <img
+                      src={author.avatarUrl}
+                      alt={author.name}
+                      class="w-6 h-6 rounded-full"
+                    />
+                  )}
+                  <span>{author?.name}</span>
+                  <span>•</span>
+                  <time datetime={post.publishedAt?.toISOString()}>
+                    {new Date(post.publishedAt!).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </time>
+                </div>
+
+                <div class="flex items-center justify-between text-sm">
+                  {post.readingTime && (
+                    <span class="text-slate-600 dark:text-slate-400">
+                      {post.readingTime} min read
+                    </span>
+                  )}
+                  <span class="text-slate-600 dark:text-slate-400">
+                    {post.views} views
+                  </span>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+
+    <!-- Popular Posts & Tags Sidebar -->
+    {(popularPosts.length > 0 || popularTags.length > 0) && (
+      <section class="bg-white dark:bg-slate-800 py-16">
+        <div class="max-w-6xl mx-auto px-4">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Popular Posts -->
+            {popularPosts.length > 0 && (
+              <div>
+                <h2 class="text-2xl font-bold mb-6">Popular Posts</h2>
+                <div class="space-y-4">
+                  {popularPosts.map(({ post, author }) => (
+                    <div class="flex gap-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-lg hover:shadow-md transition-shadow">
+                      <div class="flex-1">
+                        <h3 class="font-bold mb-1">
+                          <a
+                            href={`/posts/${post.slug}`}
+                            class="hover:text-primary-600 dark:hover:text-primary-400"
+                          >
+                            {post.title}
+                          </a>
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">
+                          by {author?.name} • {post.views} views
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <!-- Popular Tags -->
+            {popularTags.length > 0 && (
+              <div>
+                <h2 class="text-2xl font-bold mb-6">Popular Tags</h2>
+                <div class="flex flex-wrap gap-2">
+                  {popularTags.map(({ tag, postCount }) => (
+                    <a
+                      href={`/tags/${tag.slug}`}
+                      class="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full hover:bg-primary-100 dark:hover:bg-primary-900 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+                    >
+                      #{tag.name}
+                      <span class="text-xs opacity-60 ml-1">({postCount})</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- Features Section -->
+    <section class="max-w-6xl mx-auto px-4 py-16">
+      <h2 class="text-3xl font-bold text-center mb-12">Why Pythoughts?</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="card text-center">
+          <div class="text-5xl mb-4">🔒</div>
+          <h3 class="text-xl font-bold mb-3">Secure Authentication</h3>
+          <p class="text-slate-600 dark:text-slate-400">
+            Email verification, password reset, and role-based access control for complete security.
+          </p>
+        </div>
+        <div class="card text-center">
+          <div class="text-5xl mb-4">📝</div>
+          <h3 class="text-xl font-bold mb-3">Powerful Editor</h3>
+          <p class="text-slate-600 dark:text-slate-400">
+            Write in Markdown with live preview, categories, tags, and featured images.
+          </p>
+        </div>
+        <div class="card text-center">
+          <div class="text-5xl mb-4">⚡</div>
+          <h3 class="text-xl font-bold mb-3">Lightning Fast</h3>
+          <p class="text-slate-600 dark:text-slate-400">
+            Built with Astro and hybrid rendering for optimal performance and SEO.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    {!user && (
+      <section class="bg-primary-600 text-white py-16">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+          <h2 class="text-4xl font-bold mb-4">Ready to Start Writing?</h2>
+          <p class="text-xl mb-8 opacity-90">
+            Join our community of writers and share your thoughts with the world.
+          </p>
+          <div class="flex gap-4 justify-center">
+            <a href="/auth/register" class="btn bg-white text-primary-600 hover:bg-slate-100">
+              Sign Up Now
+            </a>
+            <a href="/auth/login" class="btn bg-primary-700 text-white hover:bg-primary-800">
+              Sign In
+            </a>
+          </div>
+        </div>
+      </section>
+    )}
   </div>
 </BaseLayout>

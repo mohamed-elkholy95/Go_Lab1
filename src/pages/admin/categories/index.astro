@@ -1,0 +1,235 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { getCategories } from '@/lib/services/categories';
+
+export const prerender = false;
+
+const categoriesData = await getCategories();
+---
+
+<AdminLayout title="Manage Categories - Admin">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold mb-2">Categories</h1>
+        <p class="text-slate-600 dark:text-slate-400">
+          {categoriesData.length} {categoriesData.length === 1 ? 'category' : 'categories'} total
+        </p>
+      </div>
+      <button onclick="document.getElementById('create-modal').classList.remove('hidden')" class="btn btn-primary">
+        ➕ Create Category
+      </button>
+    </div>
+
+    <!-- Categories Table -->
+    <div class="card overflow-hidden">
+      {categoriesData.length === 0 ? (
+        <div class="text-center py-12">
+          <p class="text-xl text-slate-600 dark:text-slate-400 mb-4">No categories yet</p>
+          <button onclick="document.getElementById('create-modal').classList.remove('hidden')" class="btn btn-primary inline-block">
+            Create Your First Category
+          </button>
+        </div>
+      ) : (
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-slate-100 dark:bg-slate-700">
+              <tr>
+                <th class="text-left p-4 font-semibold">Name</th>
+                <th class="text-left p-4 font-semibold">Slug</th>
+                <th class="text-left p-4 font-semibold">Description</th>
+                <th class="text-left p-4 font-semibold">Posts</th>
+                <th class="text-left p-4 font-semibold">Created</th>
+                <th class="text-right p-4 font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {categoriesData.map(({ category, postCount }) => (
+                <tr class="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">
+                  <td class="p-4 font-medium">{category.name}</td>
+                  <td class="p-4 font-mono text-sm text-slate-600 dark:text-slate-400">{category.slug}</td>
+                  <td class="p-4 text-sm text-slate-600 dark:text-slate-400 max-w-xs truncate">
+                    {category.description || '—'}
+                  </td>
+                  <td class="p-4 text-sm">{postCount}</td>
+                  <td class="p-4 text-sm">
+                    {new Date(category.createdAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </td>
+                  <td class="p-4">
+                    <div class="flex items-center justify-end gap-2">
+                      <button
+                        onclick={`editCategory('${category.id}', '${category.name}', '${category.slug}', '${category.description || ''}')`}
+                        class="text-primary-600 dark:text-primary-400 hover:underline text-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onclick={`deleteCategory('${category.id}', '${category.name}')`}
+                        class="text-red-600 dark:text-red-400 hover:underline text-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  </div>
+
+  <!-- Create Modal -->
+  <div id="create-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="card max-w-md w-full">
+      <h2 class="text-2xl font-bold mb-4">Create Category</h2>
+      <form id="create-form" class="space-y-4">
+        <div>
+          <label for="create-name" class="block text-sm font-medium mb-2">Name *</label>
+          <input type="text" id="create-name" required class="input" placeholder="Technology" />
+        </div>
+        <div>
+          <label for="create-slug" class="block text-sm font-medium mb-2">Slug *</label>
+          <input type="text" id="create-slug" required class="input font-mono" placeholder="technology" />
+        </div>
+        <div>
+          <label for="create-description" class="block text-sm font-medium mb-2">Description</label>
+          <textarea id="create-description" rows="3" class="input" placeholder="Brief description..."></textarea>
+        </div>
+        <div id="create-error" class="hidden p-3 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 rounded-lg text-sm"></div>
+        <div class="flex gap-2">
+          <button type="submit" class="btn btn-primary flex-1">Create</button>
+          <button type="button" onclick="document.getElementById('create-modal').classList.add('hidden')" class="btn btn-outline flex-1">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="edit-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="card max-w-md w-full">
+      <h2 class="text-2xl font-bold mb-4">Edit Category</h2>
+      <form id="edit-form" class="space-y-4">
+        <input type="hidden" id="edit-id" />
+        <div>
+          <label for="edit-name" class="block text-sm font-medium mb-2">Name *</label>
+          <input type="text" id="edit-name" required class="input" />
+        </div>
+        <div>
+          <label for="edit-slug" class="block text-sm font-medium mb-2">Slug *</label>
+          <input type="text" id="edit-slug" required class="input font-mono" />
+        </div>
+        <div>
+          <label for="edit-description" class="block text-sm font-medium mb-2">Description</label>
+          <textarea id="edit-description" rows="3" class="input"></textarea>
+        </div>
+        <div id="edit-error" class="hidden p-3 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 rounded-lg text-sm"></div>
+        <div class="flex gap-2">
+          <button type="submit" class="btn btn-primary flex-1">Update</button>
+          <button type="button" onclick="document.getElementById('edit-modal').classList.add('hidden')" class="btn btn-outline flex-1">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Auto-generate slug
+    document.getElementById('create-name')?.addEventListener('input', (e) => {
+      const slug = e.target.value
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-');
+      document.getElementById('create-slug').value = slug;
+    });
+
+    // Create category
+    document.getElementById('create-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('create-name').value;
+      const slug = document.getElementById('create-slug').value;
+      const description = document.getElementById('create-description').value;
+
+      try {
+        const response = await fetch('/api/categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, slug, description: description || null }),
+        });
+
+        if (response.ok) {
+          location.reload();
+        } else {
+          const data = await response.json();
+          document.getElementById('create-error').textContent = data.message;
+          document.getElementById('create-error').classList.remove('hidden');
+        }
+      } catch (error) {
+        document.getElementById('create-error').textContent = 'An error occurred';
+        document.getElementById('create-error').classList.remove('hidden');
+      }
+    });
+
+    // Edit category
+    window.editCategory = (id, name, slug, description) => {
+      document.getElementById('edit-id').value = id;
+      document.getElementById('edit-name').value = name;
+      document.getElementById('edit-slug').value = slug;
+      document.getElementById('edit-description').value = description;
+      document.getElementById('edit-modal').classList.remove('hidden');
+    };
+
+    document.getElementById('edit-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('edit-id').value;
+      const name = document.getElementById('edit-name').value;
+      const slug = document.getElementById('edit-slug').value;
+      const description = document.getElementById('edit-description').value;
+
+      try {
+        const response = await fetch(`/api/categories/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, slug, description: description || null }),
+        });
+
+        if (response.ok) {
+          location.reload();
+        } else {
+          const data = await response.json();
+          document.getElementById('edit-error').textContent = data.message;
+          document.getElementById('edit-error').classList.remove('hidden');
+        }
+      } catch (error) {
+        document.getElementById('edit-error').textContent = 'An error occurred';
+        document.getElementById('edit-error').classList.remove('hidden');
+      }
+    });
+
+    // Delete category
+    window.deleteCategory = async (id, name) => {
+      if (!confirm(`Delete category "${name}"? This will remove it from all posts.`)) return;
+
+      try {
+        const response = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          location.reload();
+        } else {
+          alert('Failed to delete category');
+        }
+      } catch (error) {
+        alert('An error occurred');
+      }
+    };
+  </script>
+</AdminLayout>
