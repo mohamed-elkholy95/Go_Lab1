@@ -2,6 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import MarkdownContent from '@/components/MarkdownContent.astro';
 import Comments from '@/components/Comments.astro';
+import SocialShare from '@/components/SocialShare.astro';
 import { getPostBySlug, incrementViews } from '@/lib/services/posts';
 
 export const prerender = false; // Enable SSR for this page
@@ -143,6 +144,17 @@ const { post, author, categories, tags } = postData;
       <!-- Content -->
       <div class="prose-custom mb-12">
         <MarkdownContent content={post.content} />
+      </div>
+
+      <!-- Social Share Buttons -->
+      <div class="border-t border-b border-slate-200 dark:border-slate-700 py-6 my-12">
+        <SocialShare
+          url={Astro.url.href}
+          title={post.title}
+          description={post.excerpt || post.description || ''}
+          hashtags={tags.map(t => t.name)}
+          showLabel={true}
+        />
       </div>
 
       <!-- Author Bio -->

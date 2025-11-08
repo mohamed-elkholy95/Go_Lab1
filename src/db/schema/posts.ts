@@ -18,6 +18,7 @@ export const posts = pgTable('posts', {
     .references(() => users.id, { onDelete: 'cascade' }),
   status: postStatusEnum('status').default('draft').notNull(),
   publishedAt: timestamp('published_at'),
+  scheduledAt: timestamp('scheduled_at'), // When to auto-publish
   views: integer('views').default(0).notNull(),
   readingTime: integer('reading_time'), // in minutes
   createdAt: timestamp('created_at').defaultNow().notNull(),

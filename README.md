@@ -8,17 +8,22 @@ A modern, full-featured blogging platform built with Astro, TypeScript, PostgreS
 - **Authentication**: Better Auth integration with email verification and password reset
 - **Content Management**: Full CRUD operations for posts, categories, and tags
 - **Comments System**: Nested replies, moderation, real-time updates
+- **Post Scheduling**: Schedule posts for automatic future publication with cron-based scheduler
+- **Analytics Dashboard**: Comprehensive platform metrics, top posts, engagement tracking
+- **Social Media Sharing**: One-click sharing to Twitter, Facebook, LinkedIn, Reddit, WhatsApp, Email
+- **SEO Optimized**: Open Graph, Twitter Cards, structured data, sitemap, and RSS feed
 - **User Roles**: Admin, Author, and User roles with role-based access control
 - **Email Notifications**: Resend integration for transactional emails
-- **Admin Panel**: Comprehensive dashboard for content, user, and comment management
+- **Admin Panel**: Comprehensive dashboard for content, user, comment, and analytics management
 - **Search**: Pagefind integration for fast static search with result highlighting
 - **Navigation**: Global header with responsive mobile menu and user dropdown
 - **Hybrid Rendering**: Static site generation + server-side rendering
 - **Dark Mode**: Built-in dark mode support
-- **SEO Optimized**: Meta tags, sitemap, and RSS feed generation
+- **Testing**: Vitest unit testing with coverage reporting
 - **Type-Safe**: Full TypeScript support with Drizzle ORM
 - **CI/CD Pipeline**: Automated testing, security scanning, and deployment
 - **DORA Metrics**: Track deployment frequency, lead time, and performance
+- **Git Hooks**: Pre-push validation with 8 automated quality checks
 
 ## 📋 Prerequisites
 
@@ -66,6 +71,9 @@ RESEND_FROM_EMAIL=noreply@pythoughts.com
 # Site Configuration
 SITE_URL=http://localhost:4321
 PUBLIC_SITE_NAME=Pythoughts
+
+# Post Scheduler (for cron job authentication)
+SCHEDULER_TOKEN=your-secure-random-token-here
 ```
 
 4. **Set up the database**
@@ -195,6 +203,12 @@ npm run dev              # Start dev server
 npm run build            # Build for production
 npm run preview          # Preview production build
 
+# Testing
+npm test                 # Run tests
+npm run test:watch       # Run tests in watch mode
+npm run test:ui          # Run tests with UI
+npm run test:coverage    # Run tests with coverage
+
 # Database
 npm run db:generate      # Generate migrations
 npm run db:migrate       # Run migrations
@@ -274,6 +288,127 @@ git push --no-verify
 
 See [GIT_HOOKS.md](GIT_HOOKS.md) for complete documentation.
 
+## 📊 Analytics Dashboard
+
+Access comprehensive platform metrics and insights at `/admin/analytics`.
+
+### Key Metrics
+
+- **Total Views** - Platform-wide post views with average per post
+- **Published Posts** - Total published posts with 30-day growth
+- **Total Comments** - User engagement metrics
+- **Total Users** - Registered accounts
+
+### Analytics Features
+
+- 🏆 **Top Performing Posts** - Top 10 posts by views with author info
+- ✍️ **Top Authors** - Top 5 authors by total views and post count
+- 📅 **Recent Posts** - Last 7 days performance tracking
+- 💬 **Most Discussed** - Posts with highest comment engagement
+- 📈 **Performance Summary** - Average views, engagement rate, posts per author
+
+All metrics update in real-time based on database queries.
+
+## ⏰ Post Scheduling
+
+Schedule posts for automatic publication at future dates.
+
+### Features
+
+- ⏰ **Schedule Posts** - Set specific date/time for auto-publishing
+- 📋 **View Scheduled** - See all posts with scheduled publish dates at `/admin/scheduled`
+- ▶️ **Manual Trigger** - Manually run scheduler from admin panel
+- ❌ **Cancel/Reschedule** - Modify scheduled posts before publishing
+- 🔄 **Automated Publishing** - Cron-based scheduler checks every 5 minutes
+
+### Setup
+
+1. **Set Scheduler Token** in `.env`:
+   ```bash
+   SCHEDULER_TOKEN=$(openssl rand -hex 32)
+   ```
+
+2. **Configure Cron Job** - See [SCHEDULER.md](SCHEDULER.md) for setup instructions:
+   - Vercel: Add to `vercel.json` (included)
+   - Railway: Add to `railway.json`
+   - External: Use cron-job.org or GitHub Actions
+
+3. **Schedule a Post**:
+   - Create/edit post
+   - Set "Schedule For" date/time
+   - Save as draft
+   - Post auto-publishes at scheduled time
+
+### API Endpoint
+
+```bash
+# Publish due posts (called by cron)
+POST /api/scheduler/publish
+Authorization: Bearer YOUR_SCHEDULER_TOKEN
+
+# Manual trigger (admin only)
+GET /api/scheduler/publish
+```
+
+See [SCHEDULER.md](SCHEDULER.md) for complete documentation.
+
+## 🌐 Social Media Sharing
+
+One-click sharing to multiple platforms with optimized meta tags.
+
+### Sharing Platforms
+
+- **Twitter/X** - With hashtag support
+- **Facebook** - Open Graph optimized
+- **LinkedIn** - Professional sharing
+- **Reddit** - With title and URL
+- **WhatsApp** - Mobile-friendly sharing
+- **Telegram** - Instant messaging
+- **Email** - Pre-filled subject and body
+- **Copy Link** - Clipboard copy with feedback
+
+### SEO Features
+
+- ✅ **Open Graph Tags** - Facebook, LinkedIn optimization
+- ✅ **Twitter Cards** - Summary large image cards
+- ✅ **Structured Data** - JSON-LD for articles
+- ✅ **Canonical URLs** - SEO best practices
+- ✅ **Meta Descriptions** - Dynamic from post content
+
+Share buttons appear on every post page below the content.
+
+## 🧪 Testing
+
+Vitest-based testing infrastructure with coverage reporting.
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Watch mode
+npm run test:watch
+
+# UI mode
+npm run test:ui
+
+# Coverage report
+npm run test:coverage
+```
+
+### Test Structure
+
+```
+tests/
+├── validations/
+│   ├── posts.test.ts      # Post utilities tests
+│   └── comments.test.ts   # Comment validation tests
+└── README.md              # Testing guide
+```
+
+See [tests/README.md](tests/README.md) for testing guidelines.
+
 ## 🚀 Deployment
 
 The application uses hybrid rendering and requires:
@@ -338,7 +473,7 @@ See [CI_CD.md](CI_CD.md) for complete CI/CD documentation.
 
 ## 📖 Implementation Progress
 
-> **Overall Completion: ~98% - Production Ready!** 🎉 | See [PROGRESS.md](PROGRESS.md) for detailed tracking
+> **Overall Completion: 100% - Production Ready!** 🎉 | See [PROGRESS.md](PROGRESS.md) for detailed tracking
 
 ### ✅ Phase 1: Database Setup (COMPLETED - 100%)
 - [x] Project initialization with Astro 5, TypeScript, Tailwind
@@ -422,12 +557,58 @@ See [CI_CD.md](CI_CD.md) for complete CI/CD documentation.
 - [x] Admin comment moderation interface
 - [x] Integration on post pages
 
-### 📅 Optional Enhancements (Future)
-- [ ] Redis caching
-- [ ] Image upload service
-- [ ] Newsletter integration
-- [ ] Analytics dashboard
-- [ ] Comment reactions and mentions
+### ✅ Phase 10: CI/CD & DevOps (COMPLETED - 100%)
+- [x] GitHub Actions CI/CD pipeline
+- [x] Automated testing and linting
+- [x] Security scanning (TruffleHog, CodeQL, Semgrep)
+- [x] DORA metrics tracking
+- [x] Pre-push git hooks with 8 validation checks
+- [x] Automated deployment workflows
+- [x] SBOM generation
+
+### ✅ Phase 11: Testing Infrastructure (COMPLETED - 100%)
+- [x] Vitest setup and configuration
+- [x] Unit tests for validation schemas
+- [x] Unit tests for utility functions
+- [x] Test coverage reporting
+- [x] Testing documentation
+
+### ✅ Phase 12: Analytics & Insights (COMPLETED - 100%)
+- [x] Analytics dashboard page
+- [x] Total metrics (posts, views, comments, users)
+- [x] Top performing posts ranking
+- [x] Top authors by views
+- [x] Recent posts performance
+- [x] Most commented posts
+- [x] Engagement rate calculations
+- [x] Performance summaries
+
+### ✅ Phase 13: Post Scheduling (COMPLETED - 100%)
+- [x] scheduledAt field in posts schema
+- [x] Scheduler service with auto-publish logic
+- [x] Scheduler API endpoint
+- [x] Scheduled posts admin page
+- [x] Manual scheduler trigger
+- [x] Cancel/reschedule functionality
+- [x] Vercel cron job configuration
+- [x] Complete scheduler documentation
+
+### ✅ Phase 14: Social Media Integration (COMPLETED - 100%)
+- [x] Social share component
+- [x] Share buttons for 7 platforms (Twitter, Facebook, LinkedIn, Reddit, WhatsApp, Telegram, Email)
+- [x] Copy link functionality
+- [x] Open Graph meta tags
+- [x] Twitter Card meta tags
+- [x] Structured data for articles
+- [x] Integration on post pages
+
+### 📅 Optional Future Enhancements
+- [ ] Redis caching layer
+- [ ] Cloudinary image upload service
+- [ ] Newsletter/subscription system
+- [ ] Comment reactions (likes, emojis)
+- [ ] User mentions and notifications
+- [ ] Advanced analytics (custom events, funnel tracking)
 
 ## 🤝 Contributing
 

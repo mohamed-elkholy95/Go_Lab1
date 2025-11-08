@@ -1,0 +1,368 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { db } from '@/db';
+import { posts, users, comments } from '@/db/schema';
+import { eq, desc, sql, and, gte } from 'drizzle-orm';
+
+export const prerender = false;
+
+// Calculate date ranges
+const now = new Date();
+const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+// Total metrics
+const [totalStats] = await db
+  .select({
+    totalPosts: sql<number>`count(distinct ${posts.id})`,
+    totalViews: sql<number>`coalesce(sum(${posts.views}), 0)`,
+    totalComments: sql<number>`count(distinct ${comments.id})`,
+    totalUsers: sql<number>`count(distinct ${users.id})`,
+  })
+  .from(posts)
+  .leftJoin(comments, eq(posts.id, comments.postId))
+  .leftJoin(users, eq(posts.authorId, users.id));
+
+// Published posts stats
+const [publishedStats] = await db
+  .select({
+    count: sql<number>`count(*)`,
+    totalViews: sql<number>`coalesce(sum(${posts.views}), 0)`,
+    avgViews: sql<number>`coalesce(avg(${posts.views}), 0)`,
+  })
+  .from(posts)
+  .where(eq(posts.status, 'published'));
+
+// Recent activity (last 30 days)
+const [recentActivity] = await db
+  .select({
+    newPosts: sql<number>`count(*)`,
+    totalViews: sql<number>`coalesce(sum(${posts.views}), 0)`,
+  })
+  .from(posts)
+  .where(and(gte(posts.createdAt, thirtyDaysAgo), eq(posts.status, 'published')));
+
+// Top performing posts
+const topPosts = await db
+  .select({
+    id: posts.id,
+    title: posts.title,
+    slug: posts.slug,
+    views: posts.views,
+    createdAt: posts.createdAt,
+    author: {
+      name: users.name,
+      username: users.username,
+    },
+  })
+  .from(posts)
+  .leftJoin(users, eq(posts.authorId, users.id))
+  .where(eq(posts.status, 'published'))
+  .orderBy(desc(posts.views))
+  .limit(10);
+
+// Recent posts performance
+const recentPosts = await db
+  .select({
+    id: posts.id,
+    title: posts.title,
+    slug: posts.slug,
+    views: posts.views,
+    createdAt: posts.createdAt,
+  })
+  .from(posts)
+  .where(and(gte(posts.createdAt, sevenDaysAgo), eq(posts.status, 'published')))
+  .orderBy(desc(posts.createdAt))
+  .limit(5);
+
+// Top authors by views
+const topAuthors = await db
+  .select({
+    author: {
+      id: users.id,
+      name: users.name,
+      username: users.username,
+      avatarUrl: users.avatarUrl,
+    },
+    postCount: sql<number>`count(${posts.id})`,
+    totalViews: sql<number>`coalesce(sum(${posts.views}), 0)`,
+  })
+  .from(users)
+  .leftJoin(posts, and(eq(users.id, posts.authorId), eq(posts.status, 'published')))
+  .groupBy(users.id, users.name, users.username, users.avatarUrl)
+  .having(sql`count(${posts.id}) > 0`)
+  .orderBy(desc(sql`coalesce(sum(${posts.views}), 0)`))
+  .limit(5);
+
+// Most commented posts
+const mostCommented = await db
+  .select({
+    post: {
+      id: posts.id,
+      title: posts.title,
+      slug: posts.slug,
+    },
+    commentCount: sql<number>`count(${comments.id})`,
+  })
+  .from(posts)
+  .leftJoin(comments, and(eq(posts.id, comments.postId), eq(comments.status, 'approved')))
+  .where(eq(posts.status, 'published'))
+  .groupBy(posts.id, posts.title, posts.slug)
+  .having(sql`count(${comments.id}) > 0`)
+  .orderBy(desc(sql`count(${comments.id})`))
+  .limit(5);
+
+function formatNumber(num: number): string {
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+  return num.toString();
+}
+
+function formatDate(date: Date | string): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+---
+
+<AdminLayout title="Analytics Dashboard" description="Platform analytics and insights">
+  <div class="flex-1 p-8">
+    <div class="max-w-7xl mx-auto">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold mb-2">📊 Analytics Dashboard</h1>
+        <p class="text-slate-600 dark:text-slate-400">
+          Platform performance metrics and content insights
+        </p>
+      </div>
+
+      <!-- Key Metrics -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Views -->
+        <div class="card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-sm opacity-90">Total Views</div>
+            <div class="text-2xl">👁️</div>
+          </div>
+          <div class="text-3xl font-bold">{formatNumber(Number(totalStats.totalViews))}</div>
+          <div class="text-xs opacity-75 mt-2">
+            {formatNumber(Number(publishedStats.avgViews))} avg per post
+          </div>
+        </div>
+
+        <!-- Total Posts -->
+        <div class="card bg-gradient-to-br from-green-500 to-green-600 text-white">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-sm opacity-90">Published Posts</div>
+            <div class="text-2xl">📝</div>
+          </div>
+          <div class="text-3xl font-bold">{Number(publishedStats.count)}</div>
+          <div class="text-xs opacity-75 mt-2">
+            +{Number(recentActivity.newPosts)} in last 30 days
+          </div>
+        </div>
+
+        <!-- Total Comments -->
+        <div class="card bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-sm opacity-90">Total Comments</div>
+            <div class="text-2xl">💬</div>
+          </div>
+          <div class="text-3xl font-bold">{Number(totalStats.totalComments)}</div>
+          <div class="text-xs opacity-75 mt-2">User engagement</div>
+        </div>
+
+        <!-- Total Users -->
+        <div class="card bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-sm opacity-90">Total Users</div>
+            <div class="text-2xl">👥</div>
+          </div>
+          <div class="text-3xl font-bold">{Number(totalStats.totalUsers)}</div>
+          <div class="text-xs opacity-75 mt-2">Registered accounts</div>
+        </div>
+      </div>
+
+      <!-- Charts and Tables Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Top Performing Posts -->
+        <div class="card">
+          <h2 class="text-xl font-bold mb-4">🏆 Top Performing Posts</h2>
+          <div class="space-y-3">
+            {
+              topPosts.map((post, index) => (
+                <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                  <div class="text-2xl font-bold text-slate-300 dark:text-slate-600 w-8">
+                    #{index + 1}
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <a
+                      href={`/posts/${post.slug}`}
+                      class="font-medium hover:text-primary-600 dark:hover:text-primary-400 truncate block"
+                      target="_blank"
+                    >
+                      {post.title}
+                    </a>
+                    <div class="text-sm text-slate-600 dark:text-slate-400">
+                      by {post.author?.name || 'Unknown'}
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <div class="font-bold text-primary-600 dark:text-primary-400">
+                      {formatNumber(Number(post.views))}
+                    </div>
+                    <div class="text-xs text-slate-500">views</div>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+
+        <!-- Top Authors -->
+        <div class="card">
+          <h2 class="text-xl font-bold mb-4">✍️ Top Authors</h2>
+          <div class="space-y-3">
+            {
+              topAuthors.map((item, index) => (
+                <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                  <div class="text-2xl font-bold text-slate-300 dark:text-slate-600 w-8">
+                    #{index + 1}
+                  </div>
+                  <div class="flex items-center gap-3 flex-1">
+                    {item.author.avatarUrl ? (
+                      <img
+                        src={item.author.avatarUrl}
+                        alt={item.author.name || item.author.username}
+                        class="w-10 h-10 rounded-full"
+                      />
+                    ) : (
+                      <div class="w-10 h-10 rounded-full bg-primary-600 text-white flex items-center justify-center font-semibold">
+                        {(item.author.name || item.author.username)[0].toUpperCase()}
+                      </div>
+                    )}
+                    <div>
+                      <div class="font-medium">{item.author.name}</div>
+                      <div class="text-sm text-slate-600 dark:text-slate-400">
+                        {Number(item.postCount)} posts
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <div class="font-bold text-primary-600 dark:text-primary-400">
+                      {formatNumber(Number(item.totalViews))}
+                    </div>
+                    <div class="text-xs text-slate-500">views</div>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Insights Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Recent Posts Performance -->
+        <div class="card">
+          <h2 class="text-xl font-bold mb-4">📅 Recent Posts (Last 7 Days)</h2>
+          {
+            recentPosts.length === 0 ? (
+              <p class="text-slate-500 dark:text-slate-400 text-center py-8">
+                No posts published in the last 7 days
+              </p>
+            ) : (
+              <div class="space-y-3">
+                {recentPosts.map((post) => (
+                  <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                    <div class="flex-1 min-w-0">
+                      <a
+                        href={`/posts/${post.slug}`}
+                        class="font-medium hover:text-primary-600 dark:hover:text-primary-400 truncate block"
+                        target="_blank"
+                      >
+                        {post.title}
+                      </a>
+                      <div class="text-sm text-slate-600 dark:text-slate-400">
+                        {formatDate(post.createdAt)}
+                      </div>
+                    </div>
+                    <div class="text-right ml-4">
+                      <div class="font-bold">{Number(post.views)}</div>
+                      <div class="text-xs text-slate-500">views</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          }
+        </div>
+
+        <!-- Most Commented Posts -->
+        <div class="card">
+          <h2 class="text-xl font-bold mb-4">💬 Most Discussed Posts</h2>
+          {
+            mostCommented.length === 0 ? (
+              <p class="text-slate-500 dark:text-slate-400 text-center py-8">
+                No comments yet
+              </p>
+            ) : (
+              <div class="space-y-3">
+                {mostCommented.map((item) => (
+                  <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                    <div class="flex-1 min-w-0">
+                      <a
+                        href={`/posts/${item.post.slug}`}
+                        class="font-medium hover:text-primary-600 dark:hover:text-primary-400 truncate block"
+                        target="_blank"
+                      >
+                        {item.post.title}
+                      </a>
+                    </div>
+                    <div class="text-right ml-4">
+                      <div class="font-bold text-purple-600 dark:text-purple-400">
+                        {Number(item.commentCount)}
+                      </div>
+                      <div class="text-xs text-slate-500">comments</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          }
+        </div>
+      </div>
+
+      <!-- Performance Summary -->
+      <div class="card mt-6 bg-gradient-to-r from-primary-50 to-purple-50 dark:from-slate-800 dark:to-slate-700">
+        <h2 class="text-xl font-bold mb-4">📈 Performance Summary</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <div class="text-sm text-slate-600 dark:text-slate-400 mb-1">Average Views per Post</div>
+            <div class="text-2xl font-bold text-primary-600 dark:text-primary-400">
+              {Math.round(Number(publishedStats.avgViews))}
+            </div>
+          </div>
+          <div>
+            <div class="text-sm text-slate-600 dark:text-slate-400 mb-1">Engagement Rate</div>
+            <div class="text-2xl font-bold text-primary-600 dark:text-primary-400">
+              {Number(totalStats.totalViews) > 0
+                ? ((Number(totalStats.totalComments) / Number(totalStats.totalViews)) * 100).toFixed(2)
+                : 0}%
+            </div>
+          </div>
+          <div>
+            <div class="text-sm text-slate-600 dark:text-slate-400 mb-1">Posts per Author</div>
+            <div class="text-2xl font-bold text-primary-600 dark:text-primary-400">
+              {Number(totalStats.totalUsers) > 0
+                ? (Number(publishedStats.count) / Number(totalStats.totalUsers)).toFixed(1)
+                : 0}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>

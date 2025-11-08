@@ -1,0 +1,19 @@
+{
+  "crons": [
+    {
+      "path": "/api/scheduler/publish",
+      "schedule": "*/5 * * * *"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/scheduler/publish",
+      "headers": [
+        {
+          "key": "Authorization",
+          "value": "Bearer process.env.SCHEDULER_TOKEN"
+        }
+      ]
+    }
+  ]
+}
