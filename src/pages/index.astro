@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Pythoughts - Modern Blogging Platform">
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-4xl mx-auto text-center space-y-8">
+      <h1 class="text-5xl md:text-7xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
+        Welcome to Pythoughts
+      </h1>
+      <p class="text-xl md:text-2xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+        A modern full-stack blogging platform built with Astro, TypeScript, PostgreSQL, and Drizzle ORM.
+      </p>
+      <div class="flex flex-wrap gap-4 justify-center">
+        <a href="/auth/login" class="btn btn-primary">
+          Get Started
+        </a>
+        <a href="/posts" class="btn btn-outline">
+          Browse Posts
+        </a>
+      </div>
+      <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+        <div class="card">
+          <h3 class="text-xl font-bold mb-2">🔒 Secure Authentication</h3>
+          <p class="text-slate-600 dark:text-slate-400">
+            Built-in authentication with Lucia Auth, email verification, and role-based access control.
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="text-xl font-bold mb-2">📝 Content Management</h3>
+          <p class="text-slate-600 dark:text-slate-400">
+            Powerful admin panel for managing posts, categories, tags, and users with Markdown support.
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="text-xl font-bold mb-2">⚡ High Performance</h3>
+          <p class="text-slate-600 dark:text-slate-400">
+            Hybrid rendering with Astro, database-driven content, and optional Redis caching.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

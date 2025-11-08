@@ -1,0 +1,291 @@
+# Pythoughts - Full-Stack Blogging Platform
+
+A modern, full-featured blogging platform built with Astro, TypeScript, PostgreSQL, and Drizzle ORM. Features user authentication, database-driven content management, email functionality, and a comprehensive admin panel.
+
+## 🚀 Features
+
+- **Modern Tech Stack**: Astro 5, TypeScript, Tailwind CSS, PostgreSQL, Drizzle ORM
+- **Authentication**: Better Auth integration with email verification and password reset
+- **Content Management**: Full CRUD operations for posts, categories, and tags
+- **User Roles**: Admin, Author, and User roles with role-based access control
+- **Email Notifications**: Resend integration for transactional emails
+- **Admin Panel**: Comprehensive dashboard for content and user management
+- **Hybrid Rendering**: Static site generation + server-side rendering
+- **Dark Mode**: Built-in dark mode support
+- **SEO Optimized**: Meta tags, sitemap, and RSS feed generation
+- **Type-Safe**: Full TypeScript support with Drizzle ORM
+
+## 📋 Prerequisites
+
+- Node.js 18+
+- PostgreSQL 17
+- npm or pnpm
+- Resend API key (for email functionality)
+
+## 🛠️ Installation
+
+1. **Clone the repository**
+
+```bash
+git clone <repository-url>
+cd Go_Lab1
+```
+
+2. **Install dependencies**
+
+```bash
+npm install
+```
+
+3. **Set up environment variables**
+
+Copy `.env.example` to `.env` and fill in your credentials:
+
+```bash
+cp .env.example .env
+```
+
+Required environment variables:
+
+```env
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/pythoughts
+
+# Authentication
+AUTH_SECRET=your-secret-key-here-min-32-characters-long
+
+# Resend Email Service
+RESEND_API_KEY=re_xxxxxxxxxxxxx
+RESEND_FROM_EMAIL=noreply@pythoughts.com
+
+# Site Configuration
+SITE_URL=http://localhost:4321
+PUBLIC_SITE_NAME=Pythoughts
+```
+
+4. **Set up the database**
+
+```bash
+# Generate migration files
+npm run db:generate
+
+# Run migrations
+npm run db:migrate
+
+# Or push schema directly (development)
+npm run db:push
+```
+
+5. **Start the development server**
+
+```bash
+npm run dev
+```
+
+The site will be available at `http://localhost:4321`
+
+## 📁 Project Structure
+
+```
+src/
+├── db/                          # Database layer
+│   ├── schema/                  # Drizzle schema definitions
+│   │   ├── users.ts             # User and email verification tables
+│   │   ├── sessions.ts          # Session management
+│   │   ├── posts.ts             # Blog posts
+│   │   ├── categories.ts        # Categories, tags, and junctions
+│   │   └── index.ts             # Schema exports
+│   └── index.ts                 # Database connection
+├── lib/                         # Shared utilities
+│   ├── auth/                    # Authentication logic
+│   │   ├── config.ts            # Better Auth configuration
+│   │   └── utils.ts             # Auth helper functions
+│   ├── email/                   # Email functionality
+│   │   ├── client.ts            # Resend client setup
+│   │   ├── templates.ts         # Email templates
+│   │   └── utils.ts             # Email sending functions
+│   ├── services/                # Business logic (TODO)
+│   └── validations/             # Zod schemas (TODO)
+├── layouts/                     # Astro layouts
+│   └── BaseLayout.astro         # Base HTML layout
+├── pages/                       # Routes
+│   ├── api/                     # API endpoints
+│   │   └── auth/                # Auth API routes
+│   ├── auth/                    # Auth pages
+│   │   ├── login.astro
+│   │   ├── register.astro
+│   │   └── verify-email.astro
+│   ├── admin/                   # Admin panel (TODO)
+│   ├── posts/                   # Blog posts (TODO)
+│   ├── index.astro              # Homepage
+│   └── unauthorized.astro       # 403 page
+├── components/                  # Reusable components (TODO)
+├── styles/                      # Global styles
+│   └── global.css               # Tailwind + custom styles
+├── middleware.ts                # Route protection
+└── env.d.ts                     # TypeScript definitions
+```
+
+## 🗄️ Database Schema
+
+### Core Tables
+
+- **users**: User accounts with email, username, password, role, and profile info
+- **sessions**: Active user sessions (Better Auth)
+- **email_verifications**: Email verification tokens
+- **posts**: Blog posts with markdown content, status, and metadata
+- **categories**: Post categories
+- **tags**: Post tags
+- **post_categories**: Many-to-many relationship between posts and categories
+- **post_tags**: Many-to-many relationship between posts and tags
+
+## 🔐 Authentication
+
+The platform uses **Better Auth** for authentication with the following features:
+
+- Email/password authentication
+- Email verification required
+- Session-based authentication
+- Password reset functionality
+- Role-based access control (User, Author, Admin)
+
+### Protected Routes
+
+- `/admin/*` - Admin only
+- `/posts/new`, `/posts/edit/*` - Authors and Admins
+- `/settings` - Authenticated users
+
+### Auth API Endpoints
+
+All auth endpoints are handled by Better Auth at `/api/auth/*`:
+
+- `POST /api/auth/sign-up/email` - Register new user
+- `POST /api/auth/sign-in/email` - Login
+- `GET /api/auth/session` - Get current session
+- `POST /api/auth/sign-out` - Logout
+
+## 📧 Email Integration
+
+Uses **Resend** for transactional emails:
+
+- Email verification on registration
+- Welcome email after verification
+- Password reset emails
+
+Email templates are fully customizable in `src/lib/email/templates.ts`.
+
+## 🎨 Styling
+
+- **Tailwind CSS** for utility-first styling
+- **Dark mode** support with class-based toggling
+- **Typography plugin** for markdown content
+- **Custom components** (buttons, inputs, cards)
+
+## 📝 Scripts
+
+```bash
+# Development
+npm run dev              # Start dev server
+npm run build            # Build for production
+npm run preview          # Preview production build
+
+# Database
+npm run db:generate      # Generate migrations
+npm run db:migrate       # Run migrations
+npm run db:push          # Push schema (development)
+npm run db:studio        # Open Drizzle Studio
+```
+
+## 🚀 Deployment
+
+The application uses hybrid rendering and requires:
+
+1. Node.js server (via @astrojs/node adapter)
+2. PostgreSQL database
+3. Environment variables configured
+
+Recommended platforms:
+- Vercel
+- Netlify
+- Railway
+- Render
+- Fly.io
+
+## 📖 Implementation Progress
+
+### ✅ Phase 1: Database Setup (COMPLETED)
+- [x] Project initialization
+- [x] Database schema design
+- [x] Drizzle ORM configuration
+- [x] Database connection setup
+
+### ✅ Phase 2: Authentication (COMPLETED)
+- [x] Better Auth integration
+- [x] Login/Register pages
+- [x] Email verification
+- [x] Password reset
+- [x] Auth middleware
+- [x] Role-based access control
+
+### ✅ Phase 2.5: Email Integration (COMPLETED)
+- [x] Resend client setup
+- [x] Email templates
+- [x] Verification emails
+- [x] Welcome emails
+- [x] Password reset emails
+
+### 🚧 Phase 3: Content Management (IN PROGRESS)
+- [ ] Posts API endpoints
+- [ ] Content service layer
+- [ ] Dynamic post pages
+- [ ] Home and archive pages
+- [ ] Markdown processing
+
+### 📅 Phase 4: User Management (TODO)
+- [ ] User profile pages
+- [ ] Profile settings
+- [ ] Avatar upload
+- [ ] User API endpoints
+
+### 📅 Phase 5: Admin Panel (TODO)
+- [ ] Admin dashboard
+- [ ] Post management
+- [ ] User management
+- [ ] Category/tag management
+
+### 📅 Phase 6: Enhanced Features (TODO)
+- [ ] Comments system
+- [ ] Search with Pagefind
+- [ ] Analytics tracking
+- [ ] SEO enhancements
+
+### 📅 Phase 7: Performance (TODO)
+- [ ] Redis caching (optional)
+- [ ] Query optimization
+- [ ] Image optimization
+
+### 📅 Phase 8: Production (TODO)
+- [ ] Security hardening
+- [ ] Rate limiting
+- [ ] CSRF protection
+- [ ] Deployment documentation
+
+## 🤝 Contributing
+
+This is a complete platform implementation. Follow the existing code patterns and maintain type safety.
+
+## 📄 License
+
+MIT License - See LICENSE file for details
+
+## 🙏 Acknowledgments
+
+- [Astro](https://astro.build/)
+- [Better Auth](https://www.better-auth.com/)
+- [Drizzle ORM](https://orm.drizzle.team/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Resend](https://resend.com/)
+
+---
+
+Built with ❤️ using Astro and TypeScript

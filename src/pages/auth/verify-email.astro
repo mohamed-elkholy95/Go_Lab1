@@ -1,0 +1,79 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+const token = Astro.url.searchParams.get('token');
+---
+
+<BaseLayout title="Verify Email - Pythoughts">
+  <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
+    <div class="w-full max-w-md">
+      <div class="card text-center">
+        <div id="loading" class="space-y-4">
+          <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          <h2 class="text-2xl font-bold">Verifying your email...</h2>
+          <p class="text-slate-600 dark:text-slate-400">Please wait while we verify your email address.</p>
+        </div>
+
+        <div id="success" class="hidden space-y-4">
+          <div class="text-green-600 text-6xl mb-4">✓</div>
+          <h2 class="text-2xl font-bold">Email Verified!</h2>
+          <p class="text-slate-600 dark:text-slate-400">
+            Your email has been successfully verified. You can now sign in to your account.
+          </p>
+          <a href="/auth/login" class="btn btn-primary inline-block mt-4">
+            Sign In
+          </a>
+        </div>
+
+        <div id="error" class="hidden space-y-4">
+          <div class="text-red-600 text-6xl mb-4">✗</div>
+          <h2 class="text-2xl font-bold">Verification Failed</h2>
+          <p id="error-message" class="text-slate-600 dark:text-slate-400"></p>
+          <a href="/auth/register" class="btn btn-outline inline-block mt-4">
+            Back to Registration
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script define:vars={{ token }}>
+    async function verifyEmail() {
+      const loading = document.getElementById('loading');
+      const success = document.getElementById('success');
+      const error = document.getElementById('error');
+      const errorMessage = document.getElementById('error-message');
+
+      if (!token) {
+        loading.classList.add('hidden');
+        error.classList.remove('hidden');
+        errorMessage.textContent = 'No verification token provided.';
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/auth/verify-email?token=${token}`, {
+          method: 'GET',
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          loading.classList.add('hidden');
+          success.classList.remove('hidden');
+        } else {
+          loading.classList.add('hidden');
+          error.classList.remove('hidden');
+          errorMessage.textContent = data.message || 'Verification failed. The token may be invalid or expired.';
+        }
+      } catch (err) {
+        loading.classList.add('hidden');
+        error.classList.remove('hidden');
+        errorMessage.textContent = 'An error occurred during verification. Please try again.';
+      }
+    }
+
+    // Run verification on page load
+    verifyEmail();
+  </script>
+</BaseLayout>

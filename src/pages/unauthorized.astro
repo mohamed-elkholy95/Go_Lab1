@@ -1,0 +1,23 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Unauthorized - Pythoughts">
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="text-center space-y-6">
+      <div class="text-8xl">🚫</div>
+      <h1 class="text-4xl font-bold">Unauthorized Access</h1>
+      <p class="text-xl text-slate-600 dark:text-slate-400 max-w-md">
+        You don't have permission to access this page.
+      </p>
+      <div class="flex gap-4 justify-center">
+        <a href="/" class="btn btn-primary">
+          Go Home
+        </a>
+        <a href="/auth/login" class="btn btn-outline">
+          Sign In
+        </a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
