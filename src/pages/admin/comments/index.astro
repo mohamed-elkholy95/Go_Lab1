@@ -1,0 +1,293 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { getComments } from '@/lib/services/comments';
+
+export const prerender = false;
+
+// Get query parameters
+const url = new URL(Astro.request.url);
+const page = parseInt(url.searchParams.get('page') || '1');
+const status = url.searchParams.get('status') || 'approved';
+const search = url.searchParams.get('search') || '';
+
+// Fetch comments with filters
+const result = await getComments({
+  page,
+  limit: 50,
+  status: status as any,
+  sort: 'newest',
+});
+
+const { comments, pagination } = result;
+
+function formatDate(date: Date | string) {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+---
+
+<AdminLayout title="Comment Moderation" description="Manage and moderate user comments">
+  <div class="flex-1 p-8">
+    <div class="max-w-7xl mx-auto">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold mb-2">Comment Moderation</h1>
+        <p class="text-slate-600 dark:text-slate-400">
+          Manage and moderate user comments across all posts
+        </p>
+      </div>
+
+      <!-- Filters -->
+      <div class="card mb-6">
+        <form method="get" class="flex flex-wrap gap-4">
+          <!-- Status Filter -->
+          <div class="flex-1 min-w-[200px]">
+            <label for="status" class="label">Status</label>
+            <select name="status" id="status" class="input" onchange="this.form.submit()">
+              <option value="">All Comments</option>
+              <option value="approved" selected={status === 'approved'}>Approved</option>
+              <option value="pending" selected={status === 'pending'}>Pending</option>
+              <option value="spam" selected={status === 'spam'}>Spam</option>
+              <option value="deleted" selected={status === 'deleted'}>Deleted</option>
+            </select>
+          </div>
+        </form>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div class="card bg-gradient-to-br from-green-500 to-green-600 text-white">
+          <div class="text-sm opacity-90">Total Comments</div>
+          <div class="text-3xl font-bold mt-2">{pagination.total}</div>
+        </div>
+        <div class="card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+          <div class="text-sm opacity-90">Approved</div>
+          <div class="text-3xl font-bold mt-2">-</div>
+        </div>
+        <div class="card bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
+          <div class="text-sm opacity-90">Pending</div>
+          <div class="text-3xl font-bold mt-2">-</div>
+        </div>
+        <div class="card bg-gradient-to-br from-red-500 to-red-600 text-white">
+          <div class="text-sm opacity-90">Spam</div>
+          <div class="text-3xl font-bold mt-2">-</div>
+        </div>
+      </div>
+
+      <!-- Comments List -->
+      <div class="card">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-slate-200 dark:border-slate-700">
+                <th class="text-left py-3 px-4 font-semibold">User</th>
+                <th class="text-left py-3 px-4 font-semibold">Comment</th>
+                <th class="text-left py-3 px-4 font-semibold">Post</th>
+                <th class="text-left py-3 px-4 font-semibold">Status</th>
+                <th class="text-left py-3 px-4 font-semibold">Date</th>
+                <th class="text-right py-3 px-4 font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                comments.length === 0 ? (
+                  <tr>
+                    <td colspan="6" class="text-center py-12 text-slate-500 dark:text-slate-400">
+                      No comments found
+                    </td>
+                  </tr>
+                ) : (
+                  comments.map((item) => {
+                    const comment = item.comment;
+                    const user = item.user;
+
+                    return (
+                      <tr class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                        <td class="py-3 px-4">
+                          <div class="flex items-center gap-2">
+                            {user.avatarUrl ? (
+                              <img
+                                src={user.avatarUrl}
+                                alt={user.name || user.username}
+                                class="w-8 h-8 rounded-full"
+                              />
+                            ) : (
+                              <div class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm font-semibold">
+                                {(user.name || user.username)[0].toUpperCase()}
+                              </div>
+                            )}
+                            <div>
+                              <div class="font-medium text-sm">
+                                {user.name || user.username}
+                              </div>
+                              <div class="text-xs text-slate-500 dark:text-slate-400">
+                                @{user.username}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="py-3 px-4">
+                          <div class="max-w-md">
+                            <p class="text-sm text-slate-700 dark:text-slate-300 line-clamp-2">
+                              {comment.content}
+                            </p>
+                          </div>
+                        </td>
+                        <td class="py-3 px-4">
+                          <span class="text-sm text-slate-600 dark:text-slate-400">
+                            Post #{comment.postId.slice(0, 8)}...
+                          </span>
+                        </td>
+                        <td class="py-3 px-4">
+                          <span
+                            class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              comment.status === 'approved'
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                : comment.status === 'pending'
+                                  ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                  : comment.status === 'spam'
+                                    ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                    : 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200'
+                            }`}
+                          >
+                            {comment.status}
+                          </span>
+                        </td>
+                        <td class="py-3 px-4 text-sm text-slate-600 dark:text-slate-400">
+                          {formatDate(comment.createdAt)}
+                        </td>
+                        <td class="py-3 px-4">
+                          <div class="flex justify-end gap-2">
+                            {comment.status !== 'approved' && (
+                              <button
+                                class="moderate-btn text-xs px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                                data-comment-id={comment.id}
+                                data-action="approved"
+                              >
+                                Approve
+                              </button>
+                            )}
+                            {comment.status !== 'spam' && (
+                              <button
+                                class="moderate-btn text-xs px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                                data-comment-id={comment.id}
+                                data-action="spam"
+                              >
+                                Spam
+                              </button>
+                            )}
+                            {comment.status !== 'deleted' && (
+                              <button
+                                class="delete-btn text-xs px-3 py-1 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors"
+                                data-comment-id={comment.id}
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        {
+          pagination.totalPages > 1 && (
+            <div class="flex justify-center gap-2 mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+              {pagination.page > 1 && (
+                <a
+                  href={`?page=${pagination.page - 1}&status=${status}`}
+                  class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+                >
+                  Previous
+                </a>
+              )}
+              <span class="px-4 py-2">
+                Page {pagination.page} of {pagination.totalPages}
+              </span>
+              {pagination.page < pagination.totalPages && (
+                <a
+                  href={`?page=${pagination.page + 1}&status=${status}`}
+                  class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+                >
+                  Next
+                </a>
+              )}
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  // Handle moderation buttons
+  document.querySelectorAll('.moderate-btn').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const target = e.target as HTMLElement;
+      const commentId = target.dataset.commentId;
+      const action = target.dataset.action;
+
+      if (!commentId || !action) return;
+
+      try {
+        const response = await fetch(`/api/comments/${commentId}/moderate`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: action }),
+        });
+
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          const error = await response.json();
+          alert(error.message || 'Failed to moderate comment');
+        }
+      } catch (error) {
+        console.error('Error moderating comment:', error);
+        alert('Failed to moderate comment');
+      }
+    });
+  });
+
+  // Handle delete buttons
+  document.querySelectorAll('.delete-btn').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const target = e.target as HTMLElement;
+      const commentId = target.dataset.commentId;
+
+      if (!commentId) return;
+
+      if (confirm('Are you sure you want to delete this comment?')) {
+        try {
+          const response = await fetch(`/api/comments/${commentId}`, {
+            method: 'DELETE',
+          });
+
+          if (response.ok) {
+            window.location.reload();
+          } else {
+            const error = await response.json();
+            alert(error.message || 'Failed to delete comment');
+          }
+        } catch (error) {
+          console.error('Error deleting comment:', error);
+          alert('Failed to delete comment');
+        }
+      }
+    });
+  });
+</script>

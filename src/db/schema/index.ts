@@ -3,6 +3,7 @@ export * from './users';
 export * from './sessions';
 export * from './posts';
 export * from './categories';
+export * from './comments';
 
 // Re-export common types
 export type {
@@ -24,3 +25,5 @@ export type {
   PostCategory,
   PostTag,
 } from './categories';
+
+export type { Comment, NewComment } from './comments';

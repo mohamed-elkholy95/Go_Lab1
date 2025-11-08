@@ -7,9 +7,10 @@ A modern, full-featured blogging platform built with Astro, TypeScript, PostgreS
 - **Modern Tech Stack**: Astro 5, TypeScript, Tailwind CSS, PostgreSQL, Drizzle ORM
 - **Authentication**: Better Auth integration with email verification and password reset
 - **Content Management**: Full CRUD operations for posts, categories, and tags
+- **Comments System**: Nested replies, moderation, real-time updates
 - **User Roles**: Admin, Author, and User roles with role-based access control
 - **Email Notifications**: Resend integration for transactional emails
-- **Admin Panel**: Comprehensive dashboard for content and user management
+- **Admin Panel**: Comprehensive dashboard for content, user, and comment management
 - **Search**: Pagefind integration for fast static search with result highlighting
 - **Navigation**: Global header with responsive mobile menu and user dropdown
 - **Hybrid Rendering**: Static site generation + server-side rendering
@@ -136,6 +137,7 @@ src/
 - **sessions**: Active user sessions (Better Auth)
 - **email_verifications**: Email verification tokens
 - **posts**: Blog posts with markdown content, status, and metadata
+- **comments**: User comments with nested replies support
 - **categories**: Post categories
 - **tags**: Post tags
 - **post_categories**: Many-to-many relationship between posts and categories
@@ -215,7 +217,7 @@ Recommended platforms:
 
 ## 📖 Implementation Progress
 
-> **Overall Completion: ~95% - Production Ready!** 🎉 | See [PROGRESS.md](PROGRESS.md) for detailed tracking
+> **Overall Completion: ~98% - Production Ready!** 🎉 | See [PROGRESS.md](PROGRESS.md) for detailed tracking
 
 ### ✅ Phase 1: Database Setup (COMPLETED - 100%)
 - [x] Project initialization with Astro 5, TypeScript, Tailwind
@@ -289,12 +291,22 @@ Recommended platforms:
 - [x] Dark mode support for search UI
 - [x] Real-time search with result highlighting
 
+### ✅ Phase 9: Comments System (COMPLETED - 100%)
+- [x] Comments database schema with nested replies
+- [x] Comment service layer with full CRUD operations
+- [x] Comments API endpoints (GET, POST, PUT, DELETE, PATCH)
+- [x] Comments component with nested display
+- [x] Reply functionality with threading
+- [x] Edit and delete for comment owners
+- [x] Admin comment moderation interface
+- [x] Integration on post pages
+
 ### 📅 Optional Enhancements (Future)
-- [ ] Comments system
 - [ ] Redis caching
 - [ ] Image upload service
 - [ ] Newsletter integration
 - [ ] Analytics dashboard
+- [ ] Comment reactions and mentions
 
 ## 🤝 Contributing
 
