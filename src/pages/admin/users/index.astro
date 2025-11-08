@@ -1,0 +1,209 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { db } from '@/db';
+import { users } from '@/db/schema';
+import { desc, like, or } from 'drizzle-orm';
+
+export const prerender = false;
+
+const page = Number(Astro.url.searchParams.get('page')) || 1;
+const search = Astro.url.searchParams.get('search') || '';
+const role = Astro.url.searchParams.get('role') || '';
+
+const limit = 20;
+const offset = (page - 1) * limit;
+
+// Build where conditions
+const conditions = [];
+if (search) {
+  conditions.push(
+    or(
+      like(users.name, `%${search}%`),
+      like(users.email, `%${search}%`),
+      like(users.username, `%${search}%`)
+    )!
+  );
+}
+
+// Fetch users
+const allUsers = await db
+  .select()
+  .from(users)
+  .where(conditions.length > 0 ? conditions[0] : undefined)
+  .orderBy(desc(users.createdAt))
+  .limit(limit)
+  .offset(offset);
+
+// Filter by role in memory (could be optimized with SQL)
+const filteredUsers = role
+  ? allUsers.filter((u) => u.role === role)
+  : allUsers;
+
+const totalUsers = filteredUsers.length;
+const totalPages = Math.ceil(totalUsers / limit);
+---
+
+<AdminLayout title="Manage Users - Admin">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold mb-2">Users</h1>
+        <p class="text-slate-600 dark:text-slate-400">
+          {totalUsers} {totalUsers === 1 ? 'user' : 'users'} total
+        </p>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card">
+      <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">Search</label>
+          <input
+            type="text"
+            name="search"
+            value={search}
+            placeholder="Search users..."
+            class="input"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Role</label>
+          <select name="role" class="input">
+            <option value="">All Roles</option>
+            <option value="user" selected={role === 'user'}>User</option>
+            <option value="author" selected={role === 'author'}>Author</option>
+            <option value="admin" selected={role === 'admin'}>Admin</option>
+          </select>
+        </div>
+        <div class="flex items-end gap-2">
+          <button type="submit" class="btn btn-primary flex-1">
+            Apply Filters
+          </button>
+          <a href="/admin/users" class="btn btn-outline">
+            Clear
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card overflow-hidden">
+      {filteredUsers.length === 0 ? (
+        <div class="text-center py-12">
+          <p class="text-xl text-slate-600 dark:text-slate-400">No users found</p>
+        </div>
+      ) : (
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-slate-100 dark:bg-slate-700">
+              <tr>
+                <th class="text-left p-4 font-semibold">User</th>
+                <th class="text-left p-4 font-semibold">Email</th>
+                <th class="text-left p-4 font-semibold">Role</th>
+                <th class="text-left p-4 font-semibold">Status</th>
+                <th class="text-left p-4 font-semibold">Joined</th>
+                <th class="text-right p-4 font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.map((user) => (
+                <tr class="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">
+                  <td class="p-4">
+                    <div class="flex items-center gap-3">
+                      {user.avatarUrl ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt={user.name}
+                          class="w-10 h-10 rounded-full"
+                        />
+                      ) : (
+                        <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                          <span class="text-lg font-bold text-primary-600 dark:text-primary-400">
+                            {user.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <div class="font-medium">{user.name}</div>
+                        <div class="text-sm text-slate-600 dark:text-slate-400">
+                          @{user.username}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="p-4 text-sm">{user.email}</td>
+                  <td class="p-4">
+                    <span class={`px-3 py-1 rounded-full text-xs font-medium ${
+                      user.role === 'admin'
+                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
+                        : user.role === 'author'
+                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                          : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+                    }`}>
+                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                    </span>
+                  </td>
+                  <td class="p-4">
+                    <span class={`text-xs ${
+                      user.emailVerified
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-yellow-600 dark:text-yellow-400'
+                    }`}>
+                      {user.emailVerified ? '✓ Verified' : '⚠️ Unverified'}
+                    </span>
+                  </td>
+                  <td class="p-4 text-sm">
+                    {new Date(user.createdAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </td>
+                  <td class="p-4">
+                    <div class="flex items-center justify-end gap-2">
+                      <a
+                        href={`/users/${user.username}`}
+                        class="text-primary-600 dark:text-primary-400 hover:underline text-sm"
+                      >
+                        View Profile
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+
+    <!-- Pagination -->
+    {totalPages > 1 && (
+      <div class="flex justify-center gap-2">
+        {page > 1 && (
+          <a
+            href={`?page=${page - 1}${search ? `&search=${search}` : ''}${role ? `&role=${role}` : ''}`}
+            class="btn btn-outline"
+          >
+            ← Previous
+          </a>
+        )}
+
+        <span class="btn btn-secondary">
+          Page {page} of {totalPages}
+        </span>
+
+        {page < totalPages && (
+          <a
+            href={`?page=${page + 1}${search ? `&search=${search}` : ''}${role ? `&role=${role}` : ''}`}
+            class="btn btn-outline"
+          >
+            Next →
+          </a>
+        )}
+      </div>
+    )}
+  </div>
+</AdminLayout>

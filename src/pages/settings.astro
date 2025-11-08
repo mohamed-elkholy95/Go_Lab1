@@ -1,0 +1,227 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect('/auth/login?redirect=/settings');
+}
+---
+
+<BaseLayout title="Settings - Pythoughts">
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-900 py-12">
+    <div class="max-w-2xl mx-auto px-4">
+      <h1 class="text-3xl font-bold mb-8">Account Settings</h1>
+
+      <!-- Profile Settings -->
+      <div class="card mb-6">
+        <h2 class="text-xl font-bold mb-4">Profile Information</h2>
+        <form id="profile-form" class="space-y-4">
+          <div>
+            <label for="name" class="block text-sm font-medium mb-2">
+              Full Name <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              required
+              value={user.name}
+              class="input"
+            />
+          </div>
+
+          <div>
+            <label for="username" class="block text-sm font-medium mb-2">
+              Username <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              required
+              value={user.username}
+              pattern="[a-zA-Z0-9_-]+"
+              class="input font-mono"
+            />
+            <p class="text-xs text-slate-500 mt-1">
+              Letters, numbers, underscores, and hyphens only
+            </p>
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium mb-2">
+              Email Address <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              value={user.email}
+              class="input"
+            />
+            {!user.emailVerified && (
+              <p class="text-sm text-yellow-600 dark:text-yellow-400 mt-1">
+                ⚠️ Email not verified. Check your inbox for verification link.
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label for="avatarUrl" class="block text-sm font-medium mb-2">
+              Avatar URL
+            </label>
+            <input
+              type="url"
+              id="avatarUrl"
+              name="avatarUrl"
+              value={user.avatarUrl || ''}
+              class="input"
+              placeholder="https://example.com/avatar.jpg"
+            />
+          </div>
+
+          <div>
+            <label for="bio" class="block text-sm font-medium mb-2">
+              Bio
+            </label>
+            <textarea
+              id="bio"
+              name="bio"
+              rows="4"
+              maxlength="500"
+              class="input"
+              placeholder="Tell us about yourself..."
+            >{user.bio || ''}</textarea>
+            <p class="text-xs text-slate-500 mt-1">
+              Max 500 characters
+            </p>
+          </div>
+
+          <div id="profile-error" class="hidden p-3 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 rounded-lg text-sm"></div>
+          <div id="profile-success" class="hidden p-3 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 rounded-lg text-sm"></div>
+
+          <button type="submit" class="btn btn-primary" id="profile-submit">
+            Save Changes
+          </button>
+        </form>
+      </div>
+
+      <!-- Account Info -->
+      <div class="card mb-6">
+        <h2 class="text-xl font-bold mb-4">Account Information</h2>
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between">
+            <span class="text-slate-600 dark:text-slate-400">Account Type</span>
+            <span class={`font-medium px-3 py-1 rounded-full text-xs ${
+              user.role === 'admin'
+                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
+                : user.role === 'author'
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                  : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+            }`}>
+              {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+            </span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-600 dark:text-slate-400">Email Verified</span>
+            <span class={user.emailVerified ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}>
+              {user.emailVerified ? '✓ Verified' : '⚠️ Not Verified'}
+            </span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-600 dark:text-slate-400">Joined</span>
+            <span class="font-medium">
+              {new Date(user.createdAt).toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="card">
+        <h2 class="text-xl font-bold mb-4">Quick Links</h2>
+        <div class="space-y-2">
+          <a href={`/users/${user.username}`} class="block text-primary-600 dark:text-primary-400 hover:underline">
+            View Your Public Profile →
+          </a>
+          {(user.role === 'admin' || user.role === 'author') && (
+            <>
+              <a href="/admin/dashboard" class="block text-primary-600 dark:text-primary-400 hover:underline">
+                Go to Admin Dashboard →
+              </a>
+              <a href="/admin/posts" class="block text-primary-600 dark:text-primary-400 hover:underline">
+                Manage Your Posts →
+              </a>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const profileForm = document.getElementById('profile-form');
+    const profileError = document.getElementById('profile-error');
+    const profileSuccess = document.getElementById('profile-success');
+    const profileSubmit = document.getElementById('profile-submit');
+
+    profileForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const data = {
+        name: formData.get('name'),
+        username: formData.get('username'),
+        email: formData.get('email'),
+        avatarUrl: formData.get('avatarUrl') || null,
+        bio: formData.get('bio') || null,
+      };
+
+      try {
+        profileSubmit.disabled = true;
+        profileSubmit.textContent = 'Saving...';
+
+        const response = await fetch('/api/users/me', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          profileSuccess.textContent = 'Profile updated successfully!';
+          profileSuccess.classList.remove('hidden');
+          profileError.classList.add('hidden');
+
+          // Reload page after short delay
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          profileError.textContent = result.message || 'Failed to update profile';
+          profileError.classList.remove('hidden');
+          profileSuccess.classList.add('hidden');
+          profileSubmit.disabled = false;
+          profileSubmit.textContent = 'Save Changes';
+        }
+      } catch (error) {
+        profileError.textContent = 'An error occurred. Please try again.';
+        profileError.classList.remove('hidden');
+        profileSuccess.classList.add('hidden');
+        profileSubmit.disabled = false;
+        profileSubmit.textContent = 'Save Changes';
+      }
+    });
+  </script>
+</BaseLayout>

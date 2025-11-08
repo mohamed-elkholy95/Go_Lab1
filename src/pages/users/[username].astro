@@ -1,0 +1,180 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { db } from '@/db';
+import { users, posts } from '@/db/schema';
+import { eq, desc } from 'drizzle-orm';
+
+export const prerender = false;
+
+const { username } = Astro.params;
+
+if (!username) {
+  return Astro.redirect('/404');
+}
+
+// Fetch user by username
+const [user] = await db
+  .select()
+  .from(users)
+  .where(eq(users.username, username));
+
+if (!user) {
+  return Astro.redirect('/404');
+}
+
+// Fetch user's published posts
+const userPosts = await db
+  .select()
+  .from(posts)
+  .where(eq(posts.authorId, user.id))
+  .where(eq(posts.status, 'published'))
+  .orderBy(desc(posts.publishedAt))
+  .limit(10);
+
+const currentUser = Astro.locals.user;
+const isOwnProfile = currentUser?.id === user.id;
+---
+
+<BaseLayout title={`${user.name} (@${user.username}) - Pythoughts`} description={user.bio || `Profile of ${user.name}`}>
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-900 py-12">
+    <div class="max-w-4xl mx-auto px-4">
+      <!-- Profile Header -->
+      <div class="card mb-8">
+        <div class="flex flex-col md:flex-row gap-6 items-start">
+          <!-- Avatar -->
+          <div class="flex-shrink-0">
+            {user.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.name}
+                class="w-32 h-32 rounded-full"
+              />
+            ) : (
+              <div class="w-32 h-32 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                <span class="text-5xl font-bold text-primary-600 dark:text-primary-400">
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <!-- Profile Info -->
+          <div class="flex-1">
+            <h1 class="text-3xl font-bold mb-2">{user.name}</h1>
+            <p class="text-lg text-slate-600 dark:text-slate-400 mb-4">
+              @{user.username}
+            </p>
+
+            {user.bio && (
+              <p class="text-slate-700 dark:text-slate-300 mb-4">
+                {user.bio}
+              </p>
+            )}
+
+            <div class="flex flex-wrap gap-4 text-sm">
+              <div class="flex items-center gap-2">
+                <span class="font-semibold">{userPosts.length}</span>
+                <span class="text-slate-600 dark:text-slate-400">
+                  {userPosts.length === 1 ? 'Post' : 'Posts'}
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class={`px-3 py-1 rounded-full text-xs font-medium ${
+                  user.role === 'admin'
+                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
+                    : user.role === 'author'
+                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                      : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+                }`}>
+                  {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                </span>
+              </div>
+              <div class="text-slate-600 dark:text-slate-400">
+                Joined {new Date(user.createdAt).toLocaleDateString('en-US', {
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </div>
+            </div>
+
+            {isOwnProfile && (
+              <div class="mt-6">
+                <a href="/settings" class="btn btn-primary">
+                  Edit Profile
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <!-- User's Posts -->
+      <div>
+        <h2 class="text-2xl font-bold mb-6">
+          {isOwnProfile ? 'Your Posts' : 'Posts by ' + user.name}
+        </h2>
+
+        {userPosts.length === 0 ? (
+          <div class="card text-center py-12">
+            <p class="text-xl text-slate-600 dark:text-slate-400 mb-4">
+              {isOwnProfile ? "You haven't published any posts yet" : 'No posts yet'}
+            </p>
+            {isOwnProfile && (currentUser.role === 'admin' || currentUser.role === 'author') && (
+              <a href="/admin/posts/new" class="btn btn-primary inline-block">
+                Create Your First Post
+              </a>
+            )}
+          </div>
+        ) : (
+          <div class="space-y-6">
+            {userPosts.map((post) => (
+              <article class="card hover:shadow-lg transition-shadow duration-200">
+                <div class="flex gap-4">
+                  {post.featuredImage && (
+                    <img
+                      src={post.featuredImage}
+                      alt={post.title}
+                      class="w-48 h-32 object-cover rounded-lg flex-shrink-0"
+                    />
+                  )}
+                  <div class="flex-1">
+                    <h3 class="text-2xl font-bold mb-2">
+                      <a
+                        href={`/posts/${post.slug}`}
+                        class="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                      >
+                        {post.title}
+                      </a>
+                    </h3>
+                    {post.excerpt && (
+                      <p class="text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">
+                        {post.excerpt}
+                      </p>
+                    )}
+                    <div class="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+                      <time datetime={post.publishedAt?.toISOString()}>
+                        {new Date(post.publishedAt!).toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </time>
+                      {post.readingTime && (
+                        <>
+                          <span>•</span>
+                          <span>{post.readingTime} min read</span>
+                        </>
+                      )}
+                      <span>•</span>
+                      <span>{post.views} views</span>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</BaseLayout>
