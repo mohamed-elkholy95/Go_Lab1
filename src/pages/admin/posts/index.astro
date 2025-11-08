@@ -1,0 +1,226 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { getPosts } from '@/lib/services/posts';
+
+export const prerender = false;
+
+const page = Number(Astro.url.searchParams.get('page')) || 1;
+const status = Astro.url.searchParams.get('status') as 'draft' | 'published' | 'archived' | null;
+const search = Astro.url.searchParams.get('search') || undefined;
+const sort = (Astro.url.searchParams.get('sort') as any) || 'newest';
+
+const { posts, pagination } = await getPosts({
+  page,
+  limit: 20,
+  status: status || undefined,
+  search,
+  sort,
+});
+
+const statusOptions = [
+  { value: '', label: 'All Status' },
+  { value: 'published', label: 'Published' },
+  { value: 'draft', label: 'Draft' },
+  { value: 'archived', label: 'Archived' },
+];
+
+const sortOptions = [
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
+  { value: 'views', label: 'Most Views' },
+  { value: 'title', label: 'Title (A-Z)' },
+];
+---
+
+<AdminLayout title="Manage Posts - Admin">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold mb-2">Posts</h1>
+        <p class="text-slate-600 dark:text-slate-400">
+          {pagination.total} {pagination.total === 1 ? 'post' : 'posts'} total
+        </p>
+      </div>
+      <a href="/admin/posts/new" class="btn btn-primary">
+        ➕ Create New Post
+      </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card">
+      <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">Search</label>
+          <input
+            type="text"
+            name="search"
+            value={search}
+            placeholder="Search posts..."
+            class="input"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Status</label>
+          <select name="status" class="input">
+            {
+              statusOptions.map((option) => (
+                <option value={option.value} selected={status === option.value}>
+                  {option.label}
+                </option>
+              ))
+            }
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Sort By</label>
+          <select name="sort" class="input">
+            {
+              sortOptions.map((option) => (
+                <option value={option.value} selected={sort === option.value}>
+                  {option.label}
+                </option>
+              ))
+            }
+          </select>
+        </div>
+        <div class="flex items-end gap-2">
+          <button type="submit" class="btn btn-primary flex-1">
+            Apply Filters
+          </button>
+          <a href="/admin/posts" class="btn btn-outline">
+            Clear
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Posts Table -->
+    <div class="card overflow-hidden">
+      {
+        posts.length === 0 ? (
+          <div class="text-center py-12">
+            <p class="text-xl text-slate-600 dark:text-slate-400 mb-4">No posts found</p>
+            <a href="/admin/posts/new" class="btn btn-primary inline-block">
+              Create Your First Post
+            </a>
+          </div>
+        ) : (
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-slate-100 dark:bg-slate-700">
+                <tr>
+                  <th class="text-left p-4 font-semibold">Title</th>
+                  <th class="text-left p-4 font-semibold">Author</th>
+                  <th class="text-left p-4 font-semibold">Status</th>
+                  <th class="text-left p-4 font-semibold">Views</th>
+                  <th class="text-left p-4 font-semibold">Date</th>
+                  <th class="text-right p-4 font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {posts.map(({ post, author }) => (
+                  <tr class="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <td class="p-4">
+                      <div>
+                        <a
+                          href={`/posts/${post.slug}`}
+                          class="font-medium hover:text-primary-600 dark:hover:text-primary-400"
+                        >
+                          {post.title}
+                        </a>
+                        {post.excerpt && (
+                          <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-1">
+                            {post.excerpt}
+                          </p>
+                        )}
+                      </div>
+                    </td>
+                    <td class="p-4">
+                      <div class="flex items-center gap-2">
+                        {author?.avatarUrl && (
+                          <img
+                            src={author.avatarUrl}
+                            alt={author.name}
+                            class="w-6 h-6 rounded-full"
+                          />
+                        )}
+                        <span class="text-sm">{author?.name}</span>
+                      </div>
+                    </td>
+                    <td class="p-4">
+                      <span
+                        class={`px-2 py-1 text-xs rounded-full ${
+                          post.status === 'published'
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                            : post.status === 'draft'
+                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+                              : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        {post.status}
+                      </span>
+                    </td>
+                    <td class="p-4 text-sm">{post.views}</td>
+                    <td class="p-4 text-sm">
+                      {new Date(post.createdAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </td>
+                    <td class="p-4">
+                      <div class="flex items-center justify-end gap-2">
+                        <a
+                          href={`/admin/posts/${post.id}`}
+                          class="text-primary-600 dark:text-primary-400 hover:underline text-sm"
+                        >
+                          Edit
+                        </a>
+                        <button
+                          onclick={`if(confirm('Delete this post?')) fetch('/api/posts/${post.id}', {method: 'DELETE'}).then(() => location.reload())`}
+                          class="text-red-600 dark:text-red-400 hover:underline text-sm"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      }
+    </div>
+
+    <!-- Pagination -->
+    {
+      pagination.totalPages > 1 && (
+        <div class="flex justify-center gap-2">
+          {pagination.page > 1 && (
+            <a
+              href={`?page=${pagination.page - 1}${status ? `&status=${status}` : ''}${search ? `&search=${search}` : ''}${sort ? `&sort=${sort}` : ''}`}
+              class="btn btn-outline"
+            >
+              ← Previous
+            </a>
+          )}
+
+          <span class="btn btn-secondary">
+            Page {pagination.page} of {pagination.totalPages}
+          </span>
+
+          {pagination.page < pagination.totalPages && (
+            <a
+              href={`?page=${pagination.page + 1}${status ? `&status=${status}` : ''}${search ? `&search=${search}` : ''}${sort ? `&sort=${sort}` : ''}`}
+              class="btn btn-outline"
+            >
+              Next →
+            </a>
+          )}
+        </div>
+      )
+    }
+  </div>
+</AdminLayout>

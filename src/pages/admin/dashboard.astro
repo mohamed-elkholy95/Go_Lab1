@@ -1,0 +1,209 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { db } from '@/db';
+import { posts, users, categories, tags } from '@/db/schema';
+import { sql, eq, desc } from 'drizzle-orm';
+import { getRecentPosts, getPopularPosts } from '@/lib/services/posts';
+
+export const prerender = false;
+
+// Get statistics
+const [postsCount] = await db.select({ count: sql<number>`count(*)` }).from(posts);
+const [usersCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
+const [categoriesCount] = await db.select({ count: sql<number>`count(*)` }).from(categories);
+const [tagsCount] = await db.select({ count: sql<number>`count(*)` }).from(tags);
+
+const [publishedCount] = await db
+  .select({ count: sql<number>`count(*)` })
+  .from(posts)
+  .where(eq(posts.status, 'published'));
+
+const [draftCount] = await db
+  .select({ count: sql<number>`count(*)` })
+  .from(posts)
+  .where(eq(posts.status, 'draft'));
+
+// Get total views
+const [totalViews] = await db.select({ total: sql<number>`sum(${posts.views})` }).from(posts);
+
+// Get recent posts
+const recentPosts = await getRecentPosts(5);
+
+// Get popular posts
+const popularPosts = await getPopularPosts(5);
+
+const stats = [
+  {
+    label: 'Total Posts',
+    value: Number(postsCount.count),
+    icon: '📝',
+    color: 'bg-blue-500',
+  },
+  {
+    label: 'Published',
+    value: Number(publishedCount.count),
+    icon: '✅',
+    color: 'bg-green-500',
+  },
+  {
+    label: 'Drafts',
+    value: Number(draftCount.count),
+    icon: '📄',
+    color: 'bg-yellow-500',
+  },
+  {
+    label: 'Total Views',
+    value: Number(totalViews.total || 0),
+    icon: '👁️',
+    color: 'bg-purple-500',
+  },
+  {
+    label: 'Users',
+    value: Number(usersCount.count),
+    icon: '👥',
+    color: 'bg-indigo-500',
+  },
+  {
+    label: 'Categories',
+    value: Number(categoriesCount.count),
+    icon: '📁',
+    color: 'bg-pink-500',
+  },
+  {
+    label: 'Tags',
+    value: Number(tagsCount.count),
+    icon: '🏷️',
+    color: 'bg-orange-500',
+  },
+];
+---
+
+<AdminLayout title="Dashboard - Admin">
+  <div class="space-y-8">
+    <div>
+      <h1 class="text-3xl font-bold mb-2">Dashboard</h1>
+      <p class="text-slate-600 dark:text-slate-400">
+        Welcome back! Here's what's happening with your platform.
+      </p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {
+        stats.map((stat) => (
+          <div class="card">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-slate-600 dark:text-slate-400 mb-1">{stat.label}</p>
+                <p class="text-3xl font-bold">{stat.value.toLocaleString()}</p>
+              </div>
+              <div
+                class={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center text-2xl`}
+              >
+                {stat.icon}
+              </div>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+      <h2 class="text-xl font-bold mb-4">Quick Actions</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <a href="/admin/posts/new" class="btn btn-primary">
+          ➕ Create New Post
+        </a>
+        <a href="/admin/categories" class="btn btn-outline">
+          📁 Manage Categories
+        </a>
+        <a href="/admin/users" class="btn btn-outline">
+          👥 Manage Users
+        </a>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Recent Posts -->
+      <div class="card">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold">Recent Posts</h2>
+          <a href="/admin/posts" class="text-primary-600 dark:text-primary-400 hover:underline">
+            View All →
+          </a>
+        </div>
+        <div class="space-y-3">
+          {
+            recentPosts.length === 0 ? (
+              <p class="text-slate-600 dark:text-slate-400">No posts yet</p>
+            ) : (
+              recentPosts.map(({ post, author }) => (
+                <div class="flex items-start gap-3 pb-3 border-b border-slate-200 dark:border-slate-700 last:border-0">
+                  <div class="flex-1">
+                    <a
+                      href={`/posts/${post.slug}`}
+                      class="font-medium hover:text-primary-600 dark:hover:text-primary-400"
+                    >
+                      {post.title}
+                    </a>
+                    <p class="text-sm text-slate-600 dark:text-slate-400">
+                      by {author?.name} •{' '}
+                      {new Date(post.publishedAt!).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                  <span class="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">
+                    {post.views} views
+                  </span>
+                </div>
+              ))
+            )
+          }
+        </div>
+      </div>
+
+      <!-- Popular Posts -->
+      <div class="card">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold">Popular Posts</h2>
+          <a href="/admin/posts?sort=views" class="text-primary-600 dark:text-primary-400 hover:underline">
+            View All →
+          </a>
+        </div>
+        <div class="space-y-3">
+          {
+            popularPosts.length === 0 ? (
+              <p class="text-slate-600 dark:text-slate-400">No posts yet</p>
+            ) : (
+              popularPosts.map(({ post, author }) => (
+                <div class="flex items-start gap-3 pb-3 border-b border-slate-200 dark:border-slate-700 last:border-0">
+                  <div class="flex-1">
+                    <a
+                      href={`/posts/${post.slug}`}
+                      class="font-medium hover:text-primary-600 dark:hover:text-primary-400"
+                    >
+                      {post.title}
+                    </a>
+                    <p class="text-sm text-slate-600 dark:text-slate-400">
+                      by {author?.name} •{' '}
+                      {new Date(post.publishedAt!).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                  <span class="text-xs px-2 py-1 bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300 rounded font-medium">
+                    {post.views} views
+                  </span>
+                </div>
+              ))
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>

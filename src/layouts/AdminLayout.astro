@@ -1,0 +1,93 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = 'Admin Dashboard', description = 'Manage your Pythoughts platform' } = Astro.props;
+
+const user = Astro.locals.user;
+const currentPath = Astro.url.pathname;
+
+const navItems = [
+  { href: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
+  { href: '/admin/posts', label: 'Posts', icon: '📝' },
+  { href: '/admin/categories', label: 'Categories', icon: '📁' },
+  { href: '/admin/tags', label: 'Tags', icon: '🏷️' },
+  { href: '/admin/users', label: 'Users', icon: '👥' },
+  { href: '/admin/settings', label: 'Settings', icon: '⚙️' },
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div class="flex">
+      <!-- Sidebar -->
+      <aside class="w-64 bg-white dark:bg-slate-800 min-h-screen border-r border-slate-200 dark:border-slate-700">
+        <div class="p-6">
+          <a href="/" class="text-2xl font-bold text-primary-600 dark:text-primary-400">
+            Pythoughts
+          </a>
+          <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Admin Panel</p>
+        </div>
+
+        <nav class="px-3">
+          {
+            navItems.map((item) => (
+              <a
+                href={item.href}
+                class={`flex items-center gap-3 px-3 py-2 rounded-lg mb-1 transition-colors ${
+                  currentPath.startsWith(item.href)
+                    ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                <span class="text-xl">{item.icon}</span>
+                <span class="font-medium">{item.label}</span>
+              </a>
+            ))
+          }
+        </nav>
+
+        <div class="absolute bottom-0 w-64 p-4 border-t border-slate-200 dark:border-slate-700">
+          {
+            user && (
+              <div class="flex items-center gap-3 mb-3">
+                {user.avatarUrl && (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.name}
+                    class="w-10 h-10 rounded-full"
+                  />
+                )}
+                <div class="flex-1 min-w-0">
+                  <p class="font-medium truncate">{user.name}</p>
+                  <p class="text-sm text-slate-600 dark:text-slate-400 truncate">
+                    @{user.username}
+                  </p>
+                </div>
+              </div>
+            )
+          }
+          <div class="flex gap-2">
+            <a href="/" class="btn btn-outline flex-1 text-sm">
+              View Site
+            </a>
+            <form method="post" action="/api/auth/sign-out" class="flex-1">
+              <button type="submit" class="btn btn-secondary w-full text-sm">
+                Logout
+              </button>
+            </form>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 p-8">
+        <slot />
+      </main>
+    </div>
+  </div>
+</BaseLayout>
