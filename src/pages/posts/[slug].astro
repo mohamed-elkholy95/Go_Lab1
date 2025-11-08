@@ -1,0 +1,186 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import MarkdownContent from '@/components/MarkdownContent.astro';
+import { getPostBySlug, incrementViews } from '@/lib/services/posts';
+
+export const prerender = false; // Enable SSR for this page
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect('/404');
+}
+
+// Fetch post
+const postData = await getPostBySlug(slug);
+
+if (!postData) {
+  return Astro.redirect('/404');
+}
+
+// Check if post is published (or if user is the author/admin)
+const user = Astro.locals.user;
+const isAuthor = user && (postData.post.authorId === user.id || user.role === 'admin');
+
+if (postData.post.status !== 'published' && !isAuthor) {
+  return Astro.redirect('/404');
+}
+
+// Increment views (async, don't wait)
+incrementViews(postData.post.id).catch(console.error);
+
+const { post, author, categories, tags } = postData;
+---
+
+<BaseLayout
+  title={post.title}
+  description={post.description || post.excerpt || undefined}
+  image={post.featuredImage || undefined}
+  article={true}
+>
+  <article class="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div class="max-w-4xl mx-auto px-4 py-12">
+      <!-- Status Badge (if draft) -->
+      {
+        post.status === 'draft' && (
+          <div class="mb-4 p-3 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 rounded-lg">
+            <strong>Draft:</strong> This post is not published yet.
+          </div>
+        )
+      }
+
+      <!-- Header -->
+      <header class="mb-8">
+        <h1 class="text-4xl md:text-6xl font-bold mb-6">{post.title}</h1>
+
+        <!-- Meta Information -->
+        <div class="flex flex-wrap items-center gap-4 text-slate-600 dark:text-slate-400 mb-6">
+          {
+            author && (
+              <div class="flex items-center gap-3">
+                {author.avatarUrl && (
+                  <img
+                    src={author.avatarUrl}
+                    alt={author.name}
+                    class="w-12 h-12 rounded-full"
+                  />
+                )}
+                <div>
+                  <div class="font-medium text-slate-900 dark:text-white">
+                    <a
+                      href={`/users/${author.username}`}
+                      class="hover:text-primary-600 dark:hover:text-primary-400"
+                    >
+                      {author.name}
+                    </a>
+                  </div>
+                  <div class="text-sm">@{author.username}</div>
+                </div>
+              </div>
+            )
+          }
+          <span>•</span>
+          <time datetime={post.publishedAt?.toISOString()}>
+            {
+              post.publishedAt
+                ? new Date(post.publishedAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })
+                : 'Draft'
+            }
+          </time>
+          {
+            post.readingTime && (
+              <>
+                <span>•</span>
+                <span>{post.readingTime} min read</span>
+              </>
+            )
+          }
+          <span>•</span>
+          <span>{post.views} views</span>
+        </div>
+
+        <!-- Categories and Tags -->
+        {
+          (categories.length > 0 || tags.length > 0) && (
+            <div class="flex flex-wrap gap-2 mb-6">
+              {categories.map((category) => (
+                <a
+                  href={`/categories/${category.slug}`}
+                  class="px-3 py-1 bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300 rounded-full text-sm font-medium hover:bg-primary-200 dark:hover:bg-primary-800 transition-colors"
+                >
+                  {category.name}
+                </a>
+              ))}
+              {tags.map((tag) => (
+                <a
+                  href={`/tags/${tag.slug}`}
+                  class="px-3 py-1 bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300 rounded-full text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                >
+                  #{tag.name}
+                </a>
+              ))}
+            </div>
+          )
+        }
+
+        <!-- Featured Image -->
+        {
+          post.featuredImage && (
+            <img
+              src={post.featuredImage}
+              alt={post.title}
+              class="w-full rounded-lg shadow-lg mb-8"
+            />
+          )
+        }
+      </header>
+
+      <!-- Content -->
+      <div class="prose-custom mb-12">
+        <MarkdownContent content={post.content} />
+      </div>
+
+      <!-- Author Bio -->
+      {
+        author && author.bio && (
+          <div class="card bg-slate-100 dark:bg-slate-800 mt-12">
+            <div class="flex gap-4">
+              {author.avatarUrl && (
+                <img
+                  src={author.avatarUrl}
+                  alt={author.name}
+                  class="w-16 h-16 rounded-full"
+                />
+              )}
+              <div>
+                <h3 class="text-xl font-bold mb-2">About {author.name}</h3>
+                <p class="text-slate-600 dark:text-slate-400 mb-3">{author.bio}</p>
+                <a
+                  href={`/users/${author.username}`}
+                  class="text-primary-600 dark:text-primary-400 hover:underline"
+                >
+                  View Profile →
+                </a>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      <!-- Edit Button for Authors -->
+      {
+        isAuthor && (
+          <div class="mt-8">
+            <a href={`/admin/posts/${post.id}`} class="btn btn-primary">
+              Edit Post
+            </a>
+          </div>
+        )
+      }
+    </div>
+  </article>
+</BaseLayout>

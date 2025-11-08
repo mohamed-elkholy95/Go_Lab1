@@ -1,0 +1,17 @@
+---
+interface Props {
+  content: string;
+}
+
+const { content } = Astro.props;
+
+// Simple markdown parsing (you can enhance this with a proper markdown parser)
+// For now, we'll use Astro's built-in markdown support
+import { marked } from 'marked';
+
+const htmlContent = marked.parse(content);
+---
+
+<div class="prose-custom">
+  <Fragment set:html={htmlContent} />
+</div>

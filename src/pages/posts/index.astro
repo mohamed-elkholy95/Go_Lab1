@@ -1,0 +1,158 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getPosts } from '@/lib/services/posts';
+
+export const prerender = false; // Enable SSR for this page
+
+// Get page number from URL
+const page = Number(Astro.url.searchParams.get('page')) || 1;
+const search = Astro.url.searchParams.get('search') || undefined;
+
+// Fetch posts
+const { posts, pagination } = await getPosts({
+  page,
+  limit: 10,
+  status: 'published',
+  search,
+  sort: 'newest',
+});
+
+const title = search ? `Search results for "${search}"` : 'All Posts';
+---
+
+<BaseLayout title={`${title} - Pythoughts`}>
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div class="max-w-6xl mx-auto px-4 py-12">
+      <!-- Header -->
+      <div class="mb-12">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">{title}</h1>
+        <p class="text-lg text-slate-600 dark:text-slate-400">
+          {pagination.total} {pagination.total === 1 ? 'post' : 'posts'} found
+        </p>
+      </div>
+
+      <!-- Search -->
+      <div class="mb-8">
+        <form method="get" class="flex gap-2">
+          <input
+            type="text"
+            name="search"
+            value={search}
+            placeholder="Search posts..."
+            class="input flex-1"
+          />
+          <button type="submit" class="btn btn-primary">Search</button>
+          {
+            search && (
+              <a href="/posts" class="btn btn-outline">
+                Clear
+              </a>
+            )
+          }
+        </form>
+      </div>
+
+      <!-- Posts Grid -->
+      {
+        posts.length === 0 ? (
+          <div class="text-center py-12">
+            <p class="text-xl text-slate-600 dark:text-slate-400">No posts found.</p>
+            <a href="/posts" class="btn btn-primary mt-4 inline-block">
+              View all posts
+            </a>
+          </div>
+        ) : (
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            {posts.map(({ post, author }) => (
+              <article class="card hover:shadow-lg transition-shadow duration-200">
+                {post.featuredImage && (
+                  <img
+                    src={post.featuredImage}
+                    alt={post.title}
+                    class="w-full h-48 object-cover rounded-t-lg mb-4 -mx-6 -mt-6"
+                  />
+                )}
+
+                <div class="space-y-4">
+                  <div class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+                    {author?.avatarUrl && (
+                      <img
+                        src={author.avatarUrl}
+                        alt={author.name}
+                        class="w-8 h-8 rounded-full"
+                      />
+                    )}
+                    <span>{author?.name}</span>
+                    <span>•</span>
+                    <time datetime={post.publishedAt?.toISOString()}>
+                      {new Date(post.publishedAt!).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </time>
+                  </div>
+
+                  <h2 class="text-2xl font-bold">
+                    <a
+                      href={`/posts/${post.slug}`}
+                      class="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                    >
+                      {post.title}
+                    </a>
+                  </h2>
+
+                  {post.excerpt && (
+                    <p class="text-slate-600 dark:text-slate-400 line-clamp-3">
+                      {post.excerpt}
+                    </p>
+                  )}
+
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+                      {post.readingTime && <span>{post.readingTime} min read</span>}
+                      <span>•</span>
+                      <span>{post.views} views</span>
+                    </div>
+                    <a href={`/posts/${post.slug}`} class="btn btn-outline btn-sm">
+                      Read More →
+                    </a>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )
+      }
+
+      <!-- Pagination -->
+      {
+        pagination.totalPages > 1 && (
+          <div class="flex justify-center gap-2">
+            {pagination.page > 1 && (
+              <a
+                href={`?page=${pagination.page - 1}${search ? `&search=${search}` : ''}`}
+                class="btn btn-outline"
+              >
+                ← Previous
+              </a>
+            )}
+
+            <span class="btn btn-secondary">
+              Page {pagination.page} of {pagination.totalPages}
+            </span>
+
+            {pagination.page < pagination.totalPages && (
+              <a
+                href={`?page=${pagination.page + 1}${search ? `&search=${search}` : ''}`}
+                class="btn btn-outline"
+              >
+                Next →
+              </a>
+            )}
+          </div>
+        )
+      }
+    </div>
+  </div>
+</BaseLayout>

@@ -25,6 +25,7 @@
     "astro-expressive-code": "^0.36.0",
     "drizzle-orm": "^0.36.4",
     "better-auth": "^1.1.4",
+    "marked": "^15.0.4",
     "pagefind": "^1.1.1",
     "resend": "^4.0.1",
     "svelte": "^5.1.9",
@@ -36,6 +37,7 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.15",
+    "@types/marked": "^6.0.0",
     "@types/node": "^22.10.2",
     "@types/ws": "^8.5.13",
     "dotenv": "^16.4.7",
