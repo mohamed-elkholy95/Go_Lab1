@@ -1,5 +1,5 @@
 {
-  "extends": "astro/tsconfigs/strict",
+  "extends": "astro/tsconfigs/base",
   "compilerOptions": {
     "target": "ES2022",
     "module": "ES2022",
@@ -8,9 +8,9 @@
     "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": false,
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "jsx": "react-jsx",

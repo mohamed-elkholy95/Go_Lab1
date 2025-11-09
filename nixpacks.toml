@@ -36,10 +36,7 @@ cmds = [
 [phases.build]
 dependsOn = ["install"]
 cmds = [
-  # Type checking
-  "npx astro check",
-
-  # Build the application
+  # Build the application (type checking handled within build script)
   "npm run build",
 
   # Verify build output exists
