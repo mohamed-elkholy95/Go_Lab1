@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Build outputs
+dist/
+.astro/
+.output/
+build/
+
+# Cache
+.cache/
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*
+
+# Database
+*.db
+*.sqlite
+
+# Generated files
+*.min.js
+*.min.css
+.DS_Store
+
+# Documentation
+CHANGELOG.md
+
+# Git
+.git/
+.husky/_
+
+# Public assets (don't format)
+public/

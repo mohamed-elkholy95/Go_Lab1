@@ -16,7 +16,15 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "format": "prettier --write \"src/**/*.{js,ts,astro,tsx}\"",
+    "format:check": "prettier --check \"src/**/*.{js,ts,astro,tsx}\"",
+    "lint": "prettier --check \"src/**/*.{js,ts,astro,tsx}\" && astro check",
+    "lint:fix": "prettier --write \"src/**/*.{js,ts,astro,tsx}\"",
+    "type-check": "astro check",
+    "validate": "npm run format:check && npm run type-check && npm test",
+    "prepare": "husky",
+    "hooks:setup": "husky && chmod +x .husky/pre-commit .husky/pre-push"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
@@ -48,9 +56,20 @@
     "@vitest/coverage-v8": "^1.0.4",
     "dotenv": "^16.4.7",
     "drizzle-kit": "^0.30.1",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.0",
     "prettier": "^3.4.2",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-tailwindcss": "^0.6.9",
     "vitest": "^1.0.4"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx,astro}": [
+      "prettier --write",
+      "astro check --minimumSeverity warning"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   }
 }

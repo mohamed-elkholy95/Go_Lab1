@@ -1,0 +1,90 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Pythoughts Pre-Commit Hook
+# This hook runs before each commit to ensure code quality and security
+# Following modern DevSecOps best practices
+
+echo "🔍 Running pre-commit checks..."
+echo "================================"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Track if any check fails
+FAILED=0
+
+# 1. Secret Scanning (Shift-Left Security)
+echo "\n${BLUE}[1/5]${NC} 🔐 Scanning for secrets..."
+if ! npx secretlint "**/*" 2>/dev/null; then
+    # Fallback to basic secret detection if secretlint is not available
+    if git diff --cached --name-only | xargs grep -E "(api[_-]?key|password|secret|token|private[_-]?key|aws[_-]?access)" -i 2>/dev/null; then
+        echo "${RED}❌ Potential secrets detected! Please remove before committing.${NC}"
+        echo "${YELLOW}   Consider using environment variables for sensitive data.${NC}"
+        FAILED=1
+    fi
+fi
+
+# 2. Lint Staged Files (Fast linting on changed files only)
+echo "\n${BLUE}[2/5]${NC} ✨ Formatting and linting staged files..."
+if ! npx lint-staged; then
+    echo "${RED}❌ Linting failed! Please fix the issues above.${NC}"
+    FAILED=1
+fi
+
+# 3. Type Checking (Catch type errors early)
+echo "\n${BLUE}[3/5]${NC} 🔍 Type checking..."
+if ! npm run type-check --silent; then
+    echo "${RED}❌ Type checking failed! Please fix type errors.${NC}"
+    FAILED=1
+fi
+
+# 4. Check for common issues
+echo "\n${BLUE}[4/5]${NC} 🔎 Checking for common issues..."
+
+# Check for console.log statements (optional, can be disabled)
+if git diff --cached --name-only | grep -E '\.(ts|tsx|js|jsx|astro)$' | xargs grep -n "console\.log" 2>/dev/null; then
+    echo "${YELLOW}⚠️  Warning: console.log statements detected${NC}"
+    echo "${YELLOW}   Consider removing or using a proper logging library${NC}"
+fi
+
+# Check for TODO/FIXME in staged files
+if git diff --cached --name-only | xargs grep -n "TODO\|FIXME" 2>/dev/null; then
+    echo "${YELLOW}⚠️  Warning: TODO/FIXME comments detected${NC}"
+fi
+
+# Check for debugger statements
+if git diff --cached --name-only | grep -E '\.(ts|tsx|js|jsx)$' | xargs grep -n "debugger" 2>/dev/null; then
+    echo "${RED}❌ Debugger statements detected! Please remove before committing.${NC}"
+    FAILED=1
+fi
+
+# 5. File size check (prevent large files)
+echo "\n${BLUE}[5/5]${NC} 📦 Checking file sizes..."
+MAX_FILE_SIZE=5242880 # 5MB in bytes
+for file in $(git diff --cached --name-only); then
+    if [ -f "$file" ]; then
+        file_size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
+        if [ "$file_size" -gt "$MAX_FILE_SIZE" ]; then
+            echo "${RED}❌ File too large: $file ($(echo "scale=2; $file_size/1048576" | bc)MB)${NC}"
+            echo "${YELLOW}   Maximum file size is 5MB. Consider using Git LFS for large files.${NC}"
+            FAILED=1
+        fi
+    fi
+done
+
+# Summary
+echo "\n================================"
+if [ $FAILED -eq 0 ]; then
+    echo "${GREEN}✅ All pre-commit checks passed!${NC}"
+    echo "${GREEN}   Ready to commit${NC}\n"
+    exit 0
+else
+    echo "${RED}❌ Pre-commit checks failed!${NC}"
+    echo "${YELLOW}   Please fix the issues above before committing${NC}\n"
+    exit 1
+fi

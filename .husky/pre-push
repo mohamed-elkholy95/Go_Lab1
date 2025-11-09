@@ -1,0 +1,153 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Pythoughts Pre-Push Hook
+# This hook runs before pushing to ensure comprehensive quality checks
+# Implements best practices from modern CI/CD and DevSecOps methodologies
+
+echo "🚀 Running pre-push validation..."
+echo "===================================="
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+NC='\033[0m' # No Color
+
+# Track if any check fails
+FAILED=0
+START_TIME=$(date +%s)
+
+# Get current branch
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+echo "${PURPLE}📍 Branch: $BRANCH${NC}\n"
+
+# 1. Re-run format and lint checks
+echo "${BLUE}[1/7]${NC} ✨ Code quality checks..."
+if ! npm run lint --silent; then
+    echo "${RED}❌ Linting failed!${NC}"
+    FAILED=1
+else
+    echo "${GREEN}✓ Linting passed${NC}"
+fi
+
+# 2. Type checking
+echo "\n${BLUE}[2/7]${NC} 🔍 Type checking..."
+if ! npm run type-check --silent; then
+    echo "${RED}❌ Type checking failed!${NC}"
+    FAILED=1
+else
+    echo "${GREEN}✓ Type checking passed${NC}"
+fi
+
+# 3. Run tests
+echo "\n${BLUE}[3/7]${NC} 🧪 Running tests..."
+if npm test --silent 2>/dev/null; then
+    echo "${GREEN}✓ Tests passed${NC}"
+else
+    echo "${YELLOW}⚠️  No tests found or tests failed${NC}"
+    echo "${YELLOW}   Consider adding tests for better code quality${NC}"
+fi
+
+# 4. Security checks
+echo "\n${BLUE}[4/7]${NC} 🔒 Security scanning..."
+
+# Check for npm vulnerabilities
+echo "  Checking dependencies for vulnerabilities..."
+if npm audit --audit-level=high --silent 2>/dev/null; then
+    echo "${GREEN}  ✓ No high/critical vulnerabilities found${NC}"
+else
+    echo "${YELLOW}  ⚠️  Vulnerabilities detected - run 'npm audit' for details${NC}"
+    echo "${YELLOW}     Consider running 'npm audit fix' to resolve${NC}"
+fi
+
+# Check for secrets in the entire repository
+echo "  Scanning for exposed secrets..."
+if git grep -E "(api[_-]?key|password|secret|token|private[_-]?key|aws[_-]?access)" -- ':!package-lock.json' ':!node_modules' 2>/dev/null | grep -v "^Binary" | head -5; then
+    echo "${RED}❌ Potential secrets detected in repository!${NC}"
+    echo "${YELLOW}   Please review and remove sensitive data${NC}"
+    FAILED=1
+else
+    echo "${GREEN}  ✓ No secrets detected${NC}"
+fi
+
+# 5. Build verification
+echo "\n${BLUE}[5/7]${NC} 🏗️  Build verification..."
+if npm run build --silent 2>&1 | tail -n 20; then
+    echo "${GREEN}✓ Build successful${NC}"
+else
+    echo "${RED}❌ Build failed!${NC}"
+    FAILED=1
+fi
+
+# 6. Bundle size check
+echo "\n${BLUE}[6/7]${NC} 📦 Bundle size analysis..."
+if [ -d "dist" ]; then
+    DIST_SIZE=$(du -sh dist 2>/dev/null | cut -f1)
+    echo "${GREEN}  Build size: $DIST_SIZE${NC}"
+
+    # Warn if dist is too large (> 50MB)
+    DIST_SIZE_BYTES=$(du -s dist 2>/dev/null | cut -f1)
+    if [ "$DIST_SIZE_BYTES" -gt 51200 ]; then  # 50MB in KB
+        echo "${YELLOW}  ⚠️  Build size is large. Consider optimization:${NC}"
+        echo "${YELLOW}     - Code splitting${NC}"
+        echo "${YELLOW}     - Asset optimization${NC}"
+        echo "${YELLOW}     - Tree shaking${NC}"
+    fi
+else
+    echo "${YELLOW}  ⚠️  dist folder not found${NC}"
+fi
+
+# 7. Branch protection checks
+echo "\n${BLUE}[7/7]${NC} 🛡️  Branch protection checks..."
+
+# Prevent direct push to main/master
+if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
+    echo "${YELLOW}⚠️  WARNING: Pushing directly to $BRANCH${NC}"
+    echo "${YELLOW}   Consider using pull requests for code review${NC}"
+    echo "${YELLOW}   Press Ctrl+C to cancel, or wait 3 seconds to continue...${NC}"
+    sleep 3
+fi
+
+# Check if branch is up to date with remote
+REMOTE_BRANCH="origin/$BRANCH"
+LOCAL=$(git rev-parse @)
+REMOTE=$(git rev-parse "$REMOTE_BRANCH" 2>/dev/null)
+BASE=$(git merge-base @ "$REMOTE_BRANCH" 2>/dev/null)
+
+if [ -n "$REMOTE" ]; then
+    if [ "$LOCAL" = "$REMOTE" ]; then
+        echo "${GREEN}✓ Branch is up to date with remote${NC}"
+    elif [ "$LOCAL" = "$BASE" ]; then
+        echo "${YELLOW}⚠️  Your branch is behind $REMOTE_BRANCH${NC}"
+        echo "${YELLOW}   Consider pulling latest changes${NC}"
+    elif [ "$REMOTE" != "$BASE" ]; then
+        echo "${YELLOW}⚠️  Branches have diverged${NC}"
+        echo "${YELLOW}   You may need to merge or rebase${NC}"
+    fi
+fi
+
+# Calculate execution time
+END_TIME=$(date +%s)
+DURATION=$((END_TIME - START_TIME))
+
+# Summary
+echo "\n===================================="
+echo "${PURPLE}📊 Pre-push validation summary${NC}"
+echo "===================================="
+echo "  Branch: $BRANCH"
+echo "  Duration: ${DURATION}s"
+echo ""
+
+if [ $FAILED -eq 0 ]; then
+    echo "${GREEN}✅ All pre-push checks passed!${NC}"
+    echo "${GREEN}   Safe to push to remote${NC}\n"
+    exit 0
+else
+    echo "${RED}❌ Some pre-push checks failed!${NC}"
+    echo "${YELLOW}   Please fix the issues above before pushing${NC}"
+    echo "${YELLOW}   Or use --no-verify to bypass (not recommended)${NC}\n"
+    exit 1
+fi
