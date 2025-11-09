@@ -40,14 +40,17 @@ cmds = [
   "npm run build",
 
   # Verify build output exists
-  "ls -la dist/"
+  "ls -la dist/",
+
+  # Make startup script executable
+  "chmod +x scripts/start.sh"
 ]
 
 # ----------------------------------------------------------------------------
 # START PHASE - Run the application
 # ----------------------------------------------------------------------------
 [start]
-cmd = "node dist/server/entry.mjs"
+cmd = "sh scripts/start.sh"
 
 # ============================================================================
 # ENVIRONMENT VARIABLES
