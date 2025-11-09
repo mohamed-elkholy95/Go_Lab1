@@ -1,11 +1,11 @@
 [
   {
     "content": "Add Resend API key to .env file",
-    "status": "in_progress"
+    "status": "completed"
   },
   {
     "content": "Test and fix authentication configuration",
-    "status": "pending"
+    "status": "in_progress"
   },
   {
     "content": "Add Lucide icon logo next to Pythoughts branding",
