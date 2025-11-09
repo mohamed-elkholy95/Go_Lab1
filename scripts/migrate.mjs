@@ -65,8 +65,8 @@ async function createDatabasePool() {
   } else {
     // Use standard PostgreSQL driver
     log.detail('Detected standard PostgreSQL database');
-    const pkg = await import('pg');
-    const Pool = pkg.default.Pool;
+    const { default: pg } = await import('pg');
+    const { Pool } = pg;
     return new Pool({
       connectionString,
       ssl: connectionString.includes('sslmode=require')

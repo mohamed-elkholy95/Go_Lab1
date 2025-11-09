@@ -37,8 +37,8 @@ if (isNeonServerless) {
   // Use standard PostgreSQL driver for all other databases
   console.log('[DB] Using standard PostgreSQL driver');
 
-  const pkg = await import('pg');
-  const { Pool } = pkg.default;
+  const { default: pg } = await import('pg');
+  const { Pool } = pg;
 
   const pool = new Pool({
     connectionString,
