@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "(astro check --minimumSeverity error || true) && astro build && pagefind --site dist",
+    "build": "(astro check --minimumSeverity error || true) && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "db:generate": "drizzle-kit generate",
