@@ -5,19 +5,29 @@ const redirect = Astro.url.searchParams.get('redirect') || '/';
 ---
 
 <BaseLayout title="Login - Pythoughts">
-  <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
+  <div class="min-h-screen flex items-center justify-center p-4" style="background: var(--bg);">
     <div class="w-full max-w-md">
-      <div class="card">
+      <!-- Logo/Brand -->
+      <div class="text-center mb-8">
+        <h2 class="text-4xl font-bold mb-2 dark:neon-glow" style="color: var(--accent);">
+          Pythoughts
+        </h2>
+        <div class="h-1 w-20 mx-auto rounded-full glow-gradient"></div>
+      </div>
+
+      <div class="card accent-glow">
         <div class="text-center mb-8">
-          <h1 class="text-3xl font-bold mb-2">Welcome Back</h1>
-          <p class="text-slate-600 dark:text-slate-400">
+          <h1 class="text-3xl font-bold mb-2" style="color: var(--text);">
+            Welcome Back
+          </h1>
+          <p style="color: var(--text-muted);">
             Sign in to your Pythoughts account
           </p>
         </div>
 
-        <form id="login-form" class="space-y-4">
+        <form id="login-form" class="space-y-5">
           <div>
-            <label for="email" class="block text-sm font-medium mb-2">
+            <label for="email" class="block text-sm font-medium mb-2" style="color: var(--text);">
               Email Address
             </label>
             <input
@@ -31,7 +41,7 @@ const redirect = Astro.url.searchParams.get('redirect') || '/';
           </div>
 
           <div>
-            <label for="password" class="block text-sm font-medium mb-2">
+            <label for="password" class="block text-sm font-medium mb-2" style="color: var(--text);">
               Password
             </label>
             <input
@@ -45,41 +55,59 @@ const redirect = Astro.url.searchParams.get('redirect') || '/';
           </div>
 
           <div class="flex items-center justify-between">
-            <label class="flex items-center">
+            <label class="flex items-center cursor-pointer group">
               <input
                 type="checkbox"
                 name="remember"
-                class="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                class="w-4 h-4 rounded transition-all focus-ring"
+                style="border-color: var(--border); accent-color: var(--accent);"
               />
-              <span class="ml-2 text-sm">Remember me</span>
+              <span class="ml-2 text-sm group-hover:text-accent transition-colors" style="color: var(--text);">
+                Remember me
+              </span>
             </label>
             <a
               href="/auth/forgot-password"
-              class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400"
+              class="text-sm link"
             >
               Forgot password?
             </a>
           </div>
 
-          <div id="error-message" class="hidden p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+          <div id="error-message" class="hidden p-3 rounded-lg text-sm" style="background: var(--error-subtle); color: var(--error);">
           </div>
 
-          <button type="submit" class="btn btn-primary w-full">
-            Sign In
+          <button type="submit" class="btn btn-primary w-full text-base">
+            <span class="flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+              Sign In
+            </span>
           </button>
         </form>
 
-        <div class="mt-6 text-center">
-          <p class="text-sm text-slate-600 dark:text-slate-400">
+        <div class="mt-6 pt-6 border-t text-center" style="border-color: var(--border);">
+          <p class="text-sm" style="color: var(--text-muted);">
             Don't have an account?
             <a
               href="/auth/register"
-              class="text-primary-600 hover:text-primary-700 dark:text-primary-400 font-medium"
+              class="link font-semibold"
             >
-              Sign up
+              Sign up for free
             </a>
           </p>
         </div>
+      </div>
+
+      <!-- Security Note -->
+      <div class="mt-6 text-center text-xs" style="color: var(--text-muted);">
+        <p class="flex items-center justify-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          Your connection is secure and encrypted
+        </p>
       </div>
     </div>
   </div>

@@ -3,19 +3,29 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="Register - Pythoughts">
-  <div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
+  <div class="min-h-screen flex items-center justify-center p-4 py-12" style="background: var(--bg);">
     <div class="w-full max-w-md">
-      <div class="card">
+      <!-- Logo/Brand -->
+      <div class="text-center mb-8">
+        <h2 class="text-4xl font-bold mb-2 dark:neon-glow" style="color: var(--accent);">
+          Pythoughts
+        </h2>
+        <div class="h-1 w-20 mx-auto rounded-full glow-gradient"></div>
+      </div>
+
+      <div class="card success-glow">
         <div class="text-center mb-8">
-          <h1 class="text-3xl font-bold mb-2">Create Account</h1>
-          <p class="text-slate-600 dark:text-slate-400">
+          <h1 class="text-3xl font-bold mb-2" style="color: var(--text);">
+            Create Account
+          </h1>
+          <p style="color: var(--text-muted);">
             Join Pythoughts and start sharing your thoughts
           </p>
         </div>
 
         <form id="register-form" class="space-y-4">
           <div>
-            <label for="name" class="block text-sm font-medium mb-2">
+            <label for="name" class="block text-sm font-medium mb-2" style="color: var(--text);">
               Full Name
             </label>
             <input
@@ -29,7 +39,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
           </div>
 
           <div>
-            <label for="username" class="block text-sm font-medium mb-2">
+            <label for="username" class="block text-sm font-medium mb-2" style="color: var(--text);">
               Username
             </label>
             <input
@@ -41,13 +51,13 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
               class="input"
               placeholder="johndoe"
             />
-            <p class="text-xs text-slate-500 mt-1">
+            <p class="text-xs mt-1" style="color: var(--text-muted);">
               Letters, numbers, underscores, and hyphens only
             </p>
           </div>
 
           <div>
-            <label for="email" class="block text-sm font-medium mb-2">
+            <label for="email" class="block text-sm font-medium mb-2" style="color: var(--text);">
               Email Address
             </label>
             <input
@@ -61,7 +71,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
           </div>
 
           <div>
-            <label for="password" class="block text-sm font-medium mb-2">
+            <label for="password" class="block text-sm font-medium mb-2" style="color: var(--text);">
               Password
             </label>
             <input
@@ -73,13 +83,13 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
               class="input"
               placeholder="••••••••"
             />
-            <p class="text-xs text-slate-500 mt-1">
+            <p class="text-xs mt-1" style="color: var(--text-muted);">
               Must be at least 8 characters long
             </p>
           </div>
 
           <div>
-            <label for="confirmPassword" class="block text-sm font-medium mb-2">
+            <label for="confirmPassword" class="block text-sm font-medium mb-2" style="color: var(--text);">
               Confirm Password
             </label>
             <input
@@ -92,27 +102,48 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
             />
           </div>
 
-          <div id="error-message" class="hidden p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+          <div id="error-message" class="hidden p-3 rounded-lg text-sm" style="background: var(--error-subtle); color: var(--error);">
           </div>
 
-          <div id="success-message" class="hidden p-3 bg-green-100 text-green-700 rounded-lg text-sm">
+          <div id="success-message" class="hidden p-3 rounded-lg text-sm success-glow" style="background: var(--success-subtle); color: var(--success);">
           </div>
 
-          <button type="submit" class="btn btn-primary w-full">
-            Create Account
+          <button type="submit" class="btn btn-success w-full text-base">
+            <span class="flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+              Create Account
+            </span>
           </button>
         </form>
 
-        <div class="mt-6 text-center">
-          <p class="text-sm text-slate-600 dark:text-slate-400">
+        <div class="mt-6 pt-6 border-t text-center" style="border-color: var(--border);">
+          <p class="text-sm" style="color: var(--text-muted);">
             Already have an account?
             <a
               href="/auth/login"
-              class="text-primary-600 hover:text-primary-700 dark:text-primary-400 font-medium"
+              class="link font-semibold"
             >
               Sign in
             </a>
           </p>
+        </div>
+      </div>
+
+      <!-- Features -->
+      <div class="mt-8 grid grid-cols-3 gap-4 text-center">
+        <div class="p-3 rounded-lg transition-all hover:-translate-y-1" style="background: var(--surface); border: 1px solid var(--border);">
+          <div class="text-2xl mb-1">✍️</div>
+          <p class="text-xs" style="color: var(--text-muted);">Write & Share</p>
+        </div>
+        <div class="p-3 rounded-lg transition-all hover:-translate-y-1" style="background: var(--surface); border: 1px solid var(--border);">
+          <div class="text-2xl mb-1">👥</div>
+          <p class="text-xs" style="color: var(--text-muted);">Connect</p>
+        </div>
+        <div class="p-3 rounded-lg transition-all hover:-translate-y-1" style="background: var(--surface); border: 1px solid var(--border);">
+          <div class="text-2xl mb-1">🚀</div>
+          <p class="text-xs" style="color: var(--text-muted);">Grow</p>
         </div>
       </div>
     </div>

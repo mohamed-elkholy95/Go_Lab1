@@ -339,9 +339,11 @@ html.is-animating .transition-fade {
   opacity: 0;
 }
 
-/* Loading states */
+/* Loading states with Radix colors */
 .skeleton {
-  @apply animate-pulse bg-slate-200 dark:bg-slate-700 rounded;
+  @apply animate-pulse rounded;
+  background: var(--surface);
+  border: 1px solid var(--border);
 }
 
 /* Smooth scroll */
@@ -349,20 +351,75 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar with Radix colors */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-slate-100 dark:bg-slate-800;
+  background: var(--bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 dark:bg-slate-600 rounded-full;
+  background: var(--border);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-400 dark:bg-slate-500;
+  background: var(--text-muted);
 }
+
+/* Terminal Border Effect */
+.terminal-border {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Glow Gradient */
+.glow-gradient {
+  background: linear-gradient(90deg, var(--success) 0%, var(--accent-hover) 100%);
+}
+
+/* Neon Glow Effect */
+.neon-glow {
+  text-shadow: 0 0 6px var(--accent);
+}
+
+/* Code Block Theme */
+.code-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.code-cursor {
+  background: var(--focus);
+}
+
+/* Success Glow */
+.success-glow {
+  box-shadow: 0 0 20px rgba(39, 201, 63, 0.3);
+}
+
+.dark .success-glow {
+  box-shadow: 0 0 20px rgba(39, 201, 63, 0.5);
+}
+
+/* Accent Glow */
+.accent-glow {
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+}
+
+.dark .accent-glow {
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
+}
+
+/* Info Glow */
+.info-glow {
+  box-shadow: 0 0 20px rgba(5, 162, 194, 0.3);
+}
+
+.dark .info-glow {
+  box-shadow: 0 0 20px rgba(5, 162, 194, 0.5);
+}
+
