@@ -41,6 +41,13 @@ const log = {
 };
 
 /**
+ * Sleep utility for retry logic
+ */
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
  * Parse DATABASE_URL into components
  */
 function parseDatabaseUrl(url) {
@@ -79,6 +86,7 @@ async function validateEnvironment() {
         if (parsed) {
           log.success(`${envVar} configured`);
           log.detail(`Host: ${parsed.host}`);
+          log.detail(`Port: ${parsed.port}`);
           log.detail(`Database: ${parsed.database}`);
           log.detail(`User: ${parsed.user}`);
         } else {
@@ -107,56 +115,99 @@ async function validateEnvironment() {
 }
 
 /**
- * Test database connection
+ * Test database connection with retry logic
  */
 async function testDatabaseConnection() {
   log.section('Database Connection Test');
 
-  try {
-    log.info('Attempting to connect to database...');
+  const maxRetries = 5;
+  const retryDelays = [2000, 4000, 6000, 8000, 10000]; // Progressive delays
 
-    const { Pool, neonConfig } = await import('@neondatabase/serverless');
-    const ws = await import('ws');
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      if (attempt === 1) {
+        log.info('Attempting to connect to database...');
+      } else {
+        log.info(`Retry attempt ${attempt}/${maxRetries}...`);
+      }
 
-    // Configure neon for WebSocket support
-    neonConfig.webSocketConstructor = ws.default;
+      const { Pool, neonConfig } = await import('@neondatabase/serverless');
+      const ws = await import('ws');
 
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      // Configure neon for WebSocket support
+      neonConfig.webSocketConstructor = ws.default;
 
-    log.detail('Testing query execution...');
-    const result = await pool.query('SELECT version() as version, now() as current_time');
+      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-    await pool.end();
+      log.detail('Testing query execution...');
+      const result = await pool.query('SELECT version() as version, now() as current_time');
 
-    log.success('Database connection successful');
-    log.detail(`PostgreSQL: ${result.rows[0].version.split(' ')[1]}`);
-    log.detail(`Server time: ${result.rows[0].current_time}`);
+      await pool.end();
 
-    return { valid: true, message: 'Database connection successful' };
-  } catch (error) {
-    log.error('Database connection failed');
+      log.success('Database connection successful');
+      if (attempt > 1) {
+        log.detail(`Connected after ${attempt} attempts`);
+      }
+      log.detail(`PostgreSQL: ${result.rows[0].version.split(' ')[1]}`);
+      log.detail(`Server time: ${result.rows[0].current_time}`);
 
-    const details = [];
+      return { valid: true, message: 'Database connection successful' };
+    } catch (error) {
+      const isLastAttempt = attempt === maxRetries;
 
-    if (error.message.includes('ENOTFOUND') || error.message.includes('getaddrinfo')) {
-      details.push('DNS resolution failed - check database host');
-      details.push('Verify network connectivity');
-    } else if (error.message.includes('ECONNREFUSED')) {
-      details.push('Connection refused - check if database is running');
-      details.push('Verify host and port are correct');
-    } else if (error.message.includes('authentication')) {
-      details.push('Authentication failed - check username and password');
-    } else if (error.message.includes('database') && error.message.includes('does not exist')) {
-      details.push('Database does not exist - create it first');
-    } else {
-      details.push(`Error: ${error.message}`);
+      // Check if this is a retryable error (connection refused, network issues)
+      const isRetryable =
+        error.message.includes('ECONNREFUSED') ||
+        error.message.includes('ENOTFOUND') ||
+        error.message.includes('ETIMEDOUT') ||
+        error.message.includes('ENETUNREACH') ||
+        error.message.includes('connect');
+
+      if (isRetryable && !isLastAttempt) {
+        const delay = retryDelays[attempt - 1];
+        log.warn(`Connection failed: ${error.message}`);
+        log.detail(`Waiting ${delay / 1000}s before retry (containerized databases may take time to start)...`);
+        await sleep(delay);
+        continue;
+      }
+
+      // Non-retryable error or last attempt failed
+      log.error('Database connection failed');
+
+      const details = [];
+
+      if (error.message.includes('ENOTFOUND') || error.message.includes('getaddrinfo')) {
+        details.push('DNS resolution failed - check database host');
+        details.push('Verify network connectivity');
+        if (process.env.DATABASE_URL.includes('localhost')) {
+          details.push('Note: "localhost" may not work in containerized environments');
+          details.push('Try using the container/service name or IP address instead');
+        }
+      } else if (error.message.includes('ECONNREFUSED')) {
+        details.push('Connection refused - database is not accepting connections');
+        details.push('In containerized environments (Docker, Dokploy):');
+        details.push('  - Database container may not be running');
+        details.push('  - Database service may not be ready yet');
+        details.push('  - Check container networking and service dependencies');
+        details.push('  - Verify DATABASE_URL uses correct service name/host');
+      } else if (error.message.includes('authentication')) {
+        details.push('Authentication failed - check username and password');
+      } else if (error.message.includes('database') && error.message.includes('does not exist')) {
+        details.push('Database does not exist - create it first');
+      } else {
+        details.push(`Error: ${error.message}`);
+      }
+
+      if (attempt > 1) {
+        details.push(`Failed after ${attempt} connection attempts`);
+      }
+
+      return {
+        valid: false,
+        message: 'Cannot connect to database',
+        details,
+      };
     }
-
-    return {
-      valid: false,
-      message: 'Cannot connect to database',
-      details,
-    };
   }
 }
 
