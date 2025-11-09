@@ -3,75 +3,330 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --color-text-base: 23 23 23;
-    --color-text-muted: 115 115 115;
-    --color-bg-base: 255 255 255;
-    --color-bg-alt: 249 250 251;
-    --color-border: 229 231 235;
+  /* Light Theme - Soft, Readable, Accessible */
+  :root,
+  :root[data-theme="light"] {
+    --bg: #ffffff;
+    --surface: #f3f3f3;
+    --border: #d4d4d4;
+    --text: #111111;
+    --text-muted: #555555;
+
+    --accent: #7c3aed;
+    --accent-hover: #8b5cf6;
+    --accent-subtle: #f3e8ff;
+    --accent-fg: #ffffff;
+
+    --success: #16a34a;
+    --success-subtle: #e7f8ee;
+    --success-fg: #0b3d22;
+
+    --error: #e5484d;
+    --error-subtle: #ffe9ea;
+    --error-fg: #5f1315;
+
+    --info: #1e90ff;
+    --info-subtle: #eaf3ff;
+    --info-fg: #0a2a66;
+
+    --focus: #a78bfa;
+    --selection: #f3e8ff;
   }
 
+  /* Dark Theme - Terminal-Inspired */
+  :root[data-theme="dark"],
   .dark {
-    --color-text-base: 255 255 255;
-    --color-text-muted: 163 163 163;
-    --color-bg-base: 15 23 42;
-    --color-bg-alt: 30 41 59;
-    --color-border: 51 65 85;
+    --bg: #111111;
+    --surface: #1a1a1a;
+    --border: #2b2b2b;
+    --text: #ededed;
+    --text-muted: #a1a1a1;
+
+    --accent: #7c3aed;
+    --accent-hover: #8b5cf6;
+    --accent-subtle: #2a1f3f;
+    --accent-fg: #ffffff;
+
+    --success: #27c93f;
+    --success-subtle: #0f2516;
+    --success-fg: #e6ffef;
+
+    --error: #e5484d;
+    --error-subtle: #2a1415;
+    --error-fg: #ffecee;
+
+    --info: #05a2c2;
+    --info-subtle: #102327;
+    --info-fg: #e8fbff;
+
+    --focus: #6e56cf;
+    --selection: #3b2a7a;
+  }
+
+  ::selection {
+    background: var(--selection);
+    color: var(--accent-fg);
   }
 
   * {
-    @apply border-slate-700/10 dark:border-slate-300/10;
+    @apply border-[var(--border)];
   }
 
   body {
-    @apply bg-white text-slate-900 dark:bg-slate-900 dark:text-white;
+    background: var(--bg);
+    color: var(--text);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold tracking-tight;
+    color: var(--text);
   }
 
   h1 {
-    @apply text-4xl md:text-5xl;
+    @apply text-4xl md:text-5xl lg:text-6xl;
+    font-weight: 800;
+    letter-spacing: -0.025em;
   }
 
   h2 {
-    @apply text-3xl md:text-4xl;
+    @apply text-3xl md:text-4xl lg:text-5xl;
+    font-weight: 700;
   }
 
   h3 {
-    @apply text-2xl md:text-3xl;
+    @apply text-2xl md:text-3xl lg:text-4xl;
+    font-weight: 600;
   }
 }
 
 @layer components {
+  /* Enhanced Buttons with Radix UI Theme */
   .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+    @apply px-5 py-2.5 rounded-lg font-medium transition-all duration-200 ease-in-out;
+    font-weight: 500;
   }
 
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600;
+    background: var(--accent);
+    color: var(--accent-fg);
+    border: 1px solid var(--border);
+    @apply hover:shadow-lg;
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
   }
 
   .btn-secondary {
-    @apply bg-slate-200 text-slate-900 hover:bg-slate-300 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    @apply hover:shadow-md;
+  }
+
+  .btn-secondary:hover {
+    filter: brightness(0.95);
   }
 
   .btn-outline {
-    @apply border-2 border-primary-600 text-primary-600 hover:bg-primary-50 dark:border-primary-400 dark:text-primary-400 dark:hover:bg-primary-950;
+    background: transparent;
+    color: var(--accent);
+    border: 2px solid var(--accent);
+    @apply hover:shadow-md;
   }
 
+  .btn-outline:hover {
+    background: var(--accent-subtle);
+  }
+
+  .btn-danger {
+    background: var(--error);
+    color: var(--error-fg);
+    border: 1px solid var(--error);
+    @apply hover:shadow-lg;
+  }
+
+  .btn-danger:hover {
+    filter: brightness(1.1);
+  }
+
+  .btn-success {
+    background: var(--success);
+    color: var(--success-fg);
+    border: 1px solid var(--success);
+    @apply hover:shadow-lg;
+  }
+
+  .btn-success:hover {
+    filter: brightness(1.1);
+  }
+
+  .btn-info {
+    background: var(--info);
+    color: var(--info-fg);
+    border: 1px solid var(--info);
+    @apply hover:shadow-lg;
+  }
+
+  /* Enhanced Input fields with Radix colors */
   .input {
-    @apply w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white;
+    @apply w-full px-4 py-3 rounded-lg transition-all duration-200;
+    background: var(--surface);
+    color: var(--text);
+    border: 2px solid var(--border);
   }
 
+  .input:hover {
+    border-color: var(--text-muted);
+  }
+
+  .input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--focus);
+  }
+
+  .input::placeholder {
+    color: var(--text-muted);
+  }
+
+  /* Modern Card designs with Radix theme */
   .card {
-    @apply bg-white dark:bg-slate-800 rounded-lg shadow-md p-6;
+    background: var(--surface);
+    color: var(--text);
+    @apply rounded-xl shadow-md p-6 transition-all duration-300;
+    border: 1px solid var(--border);
   }
 
+  .card:hover {
+    @apply shadow-xl;
+    transform: translateY(-2px);
+  }
+
+  .card-glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    @apply rounded-xl shadow-xl p-6 transition-all duration-300;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* Enhanced prose styling with Radix colors */
   .prose-custom {
-    @apply prose prose-slate dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-pre:bg-slate-900 prose-pre:text-slate-100;
+    @apply prose prose-slate max-w-none;
+    color: var(--text);
+  }
+
+  .prose-custom h1,
+  .prose-custom h2,
+  .prose-custom h3 {
+    color: var(--text);
+  }
+
+  .prose-custom a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .prose-custom a:hover {
+    text-decoration: underline;
+  }
+
+  .prose-custom code {
+    background: var(--surface);
+    color: var(--text);
+    padding: 0.2em 0.4em;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+  }
+
+  .prose-custom pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    @apply rounded-lg shadow-lg;
+  }
+
+  /* Hero sections */
+  .hero-gradient {
+    background: linear-gradient(90deg, var(--success) 0%, var(--accent-hover) 100%);
+  }
+
+  /* Badges and tags with Radix colors */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    background: var(--accent-subtle);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+
+  .badge-success {
+    background: var(--success-subtle);
+    color: var(--success);
+    border: 1px solid var(--success);
+  }
+
+  .badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fbbf24;
+  }
+
+  .dark .badge-warning {
+    background: #422006;
+    color: #fbbf24;
+  }
+
+  .badge-danger {
+    background: var(--error-subtle);
+    color: var(--error);
+    border: 1px solid var(--error);
+  }
+
+  .badge-info {
+    background: var(--info-subtle);
+    color: var(--info);
+    border: 1px solid var(--info);
+  }
+
+  /* Link styles with Radix colors */
+  .link {
+    color: var(--accent);
+    @apply underline underline-offset-4 decoration-2 transition-all duration-200;
+  }
+
+  .link:hover {
+    color: var(--accent-hover);
+  }
+
+  /* Focus ring for accessibility */
+  .focus-ring {
+    @apply focus:outline-none rounded-lg;
+  }
+
+  .focus-ring:focus {
+    box-shadow: 0 0 0 3px var(--focus);
+  }
+
+  /* Terminal glow effect for dark mode */
+  .dark .terminal-glow {
+    text-shadow: 0 0 6px var(--accent);
+  }
+
+  /* Hover transition for all interactive elements */
+  .hover-lift {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    @apply shadow-lg;
   }
 }
 

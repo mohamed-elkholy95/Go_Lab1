@@ -18,54 +18,83 @@ const user = Astro.locals.user;
 ---
 
 <BaseLayout title="Pythoughts - Modern Blogging Platform">
-  <div class="min-h-screen bg-slate-50 dark:bg-slate-900">
+  <div class="min-h-screen">
     <!-- Hero Section -->
-    <section class="bg-gradient-to-br from-primary-600 to-primary-400 text-white py-20">
-      <div class="max-w-6xl mx-auto px-4 text-center">
-        <h1 class="text-5xl md:text-7xl font-bold mb-6">
-          Welcome to Pythoughts
+    <section class="relative overflow-hidden py-24 md:py-32">
+      <div class="absolute inset-0 hero-gradient opacity-10"></div>
+      <div class="absolute inset-0" style="background: radial-gradient(circle at top right, var(--accent-subtle) 0%, transparent 50%), radial-gradient(circle at bottom left, var(--info-subtle) 0%, transparent 50%);"></div>
+
+      <div class="max-w-6xl mx-auto px-4 text-center relative z-10">
+        <div class="inline-block mb-4 px-4 py-2 rounded-full border animate-pulse" style="background: var(--accent-subtle); color: var(--accent); border-color: var(--accent);">
+          <span class="text-sm font-semibold">✨ Now with Dark Mode</span>
+        </div>
+
+        <h1 class="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 dark:terminal-glow" style="color: var(--text);">
+          Welcome to <span style="background: linear-gradient(135deg, var(--accent) 0%, var(--info) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Pythoughts</span>
         </h1>
-        <p class="text-xl md:text-2xl mb-8 opacity-90 max-w-2xl mx-auto">
-          A modern full-stack blogging platform for sharing ideas and insights
+
+        <p class="text-xl md:text-2xl mb-10 max-w-3xl mx-auto" style="color: var(--text-muted);">
+          A modern full-stack blogging platform for sharing ideas and insights with the world
         </p>
+
         <div class="flex flex-wrap gap-4 justify-center">
           {user ? (
             <>
-              <a href="/posts" class="btn bg-white text-primary-600 hover:bg-slate-100">
-                Browse Posts
+              <a href="/posts" class="btn btn-secondary text-lg">
+                📚 Browse Posts
               </a>
               {(user.role === 'admin' || user.role === 'author') && (
-                <a href="/admin/posts/new" class="btn bg-primary-700 text-white hover:bg-primary-800">
-                  Write a Post
+                <a href="/admin/posts/new" class="btn btn-primary text-lg">
+                  ✍️ Write a Post
                 </a>
               )}
             </>
           ) : (
             <>
-              <a href="/auth/register" class="btn bg-white text-primary-600 hover:bg-slate-100">
-                Get Started
+              <a href="/auth/register" class="btn btn-primary text-lg">
+                🚀 Get Started
               </a>
-              <a href="/posts" class="btn bg-primary-700 text-white hover:bg-primary-800">
-                Browse Posts
+              <a href="/posts" class="btn btn-outline text-lg">
+                📖 Browse Posts
               </a>
             </>
           )}
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-8 max-w-2xl mx-auto mt-16">
+          <div class="text-center">
+            <div class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent);">{recentPosts.length}+</div>
+            <div class="text-sm" style="color: var(--text-muted);">Recent Posts</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--success);">{popularTags.length}+</div>
+            <div class="text-sm" style="color: var(--text-muted);">Topics</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--info);">∞</div>
+            <div class="text-sm" style="color: var(--text-muted);">Ideas</div>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Recent Posts Section -->
     <section class="max-w-6xl mx-auto px-4 py-16">
-      <div class="flex items-center justify-between mb-8">
-        <h2 class="text-3xl font-bold">Recent Posts</h2>
-        <a href="/posts" class="text-primary-600 dark:text-primary-400 hover:underline">
-          View All →
+      <div class="flex items-center justify-between mb-10">
+        <h2 class="text-3xl md:text-4xl font-bold" style="color: var(--text);">
+          📚 Recent Posts
+        </h2>
+        <a href="/posts" class="link font-semibold group">
+          View All
+          <span class="inline-block transition-transform group-hover:translate-x-1">→</span>
         </a>
       </div>
 
       {recentPosts.length === 0 ? (
-        <div class="text-center py-12 card">
-          <p class="text-xl text-slate-600 dark:text-slate-400 mb-4">
+        <div class="text-center py-16 card">
+          <div class="text-6xl mb-4">✍️</div>
+          <p class="text-xl mb-6" style="color: var(--text-muted);">
             No posts yet. Be the first to write!
           </p>
           {user && (user.role === 'admin' || user.role === 'author') ? (
@@ -79,42 +108,46 @@ const user = Astro.locals.user;
           )}
         </div>
       ) : (
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {recentPosts.map(({ post, author }) => (
-            <article class="card hover:shadow-lg transition-shadow duration-200">
+            <article class="card group cursor-pointer">
               {post.featuredImage && (
-                <img
-                  src={post.featuredImage}
-                  alt={post.title}
-                  class="w-full h-48 object-cover rounded-t-lg -mx-6 -mt-6 mb-4"
-                />
+                <div class="relative overflow-hidden rounded-xl -mx-6 -mt-6 mb-4">
+                  <img
+                    src={post.featuredImage}
+                    alt={post.title}
+                    class="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </div>
               )}
 
               <div class="space-y-3">
-                <h3 class="text-xl font-bold line-clamp-2">
-                  <a
-                    href={`/posts/${post.slug}`}
-                    class="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                  >
+                <h3 class="text-xl font-bold line-clamp-2 group-hover:text-accent transition-colors" style="color: var(--text);">
+                  <a href={`/posts/${post.slug}`}>
                     {post.title}
                   </a>
                 </h3>
 
                 {post.excerpt && (
-                  <p class="text-slate-600 dark:text-slate-400 line-clamp-3 text-sm">
+                  <p class="line-clamp-3 text-sm" style="color: var(--text-muted);">
                     {post.excerpt}
                   </p>
                 )}
 
-                <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                  {author?.avatarUrl && (
+                <div class="flex items-center gap-2 text-sm" style="color: var(--text-muted);">
+                  {author?.avatarUrl ? (
                     <img
                       src={author.avatarUrl}
                       alt={author.name}
-                      class="w-6 h-6 rounded-full"
+                      class="w-7 h-7 rounded-full ring-2 ring-transparent group-hover:ring-accent transition-all"
                     />
+                  ) : (
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style="background: var(--accent); color: var(--accent-fg);">
+                      {author?.name?.charAt(0).toUpperCase() || 'U'}
+                    </div>
                   )}
-                  <span>{author?.name}</span>
+                  <span class="font-medium">{author?.name}</span>
                   <span>•</span>
                   <time datetime={post.publishedAt?.toISOString()}>
                     {new Date(post.publishedAt!).toLocaleDateString('en-US', {
@@ -124,14 +157,21 @@ const user = Astro.locals.user;
                   </time>
                 </div>
 
-                <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center justify-between text-sm pt-3 border-t" style="border-color: var(--border); color: var(--text-muted);">
                   {post.readingTime && (
-                    <span class="text-slate-600 dark:text-slate-400">
-                      {post.readingTime} min read
+                    <span class="flex items-center gap-1">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {post.readingTime} min
                     </span>
                   )}
-                  <span class="text-slate-600 dark:text-slate-400">
-                    {post.views} views
+                  <span class="flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    {post.views}
                   </span>
                 </div>
               </div>
@@ -143,27 +183,39 @@ const user = Astro.locals.user;
 
     <!-- Popular Posts & Tags Sidebar -->
     {(popularPosts.length > 0 || popularTags.length > 0) && (
-      <section class="bg-white dark:bg-slate-800 py-16">
+      <section class="py-16" style="background: var(--surface);">
         <div class="max-w-6xl mx-auto px-4">
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <!-- Popular Posts -->
             {popularPosts.length > 0 && (
               <div>
-                <h2 class="text-2xl font-bold mb-6">Popular Posts</h2>
+                <h2 class="text-2xl md:text-3xl font-bold mb-6" style="color: var(--text);">
+                  🔥 Popular Posts
+                </h2>
                 <div class="space-y-4">
-                  {popularPosts.map(({ post, author }) => (
-                    <div class="flex gap-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-lg hover:shadow-md transition-shadow">
+                  {popularPosts.map(({ post, author }, index) => (
+                    <div class="flex gap-4 p-4 rounded-xl hover:shadow-lg transition-all duration-300 group cursor-pointer hover-lift" style="background: var(--bg); border: 1px solid var(--border);">
+                      <div class="flex-shrink-0">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold" style="background: var(--accent-subtle); color: var(--accent);">
+                          {index + 1}
+                        </div>
+                      </div>
                       <div class="flex-1">
-                        <h3 class="font-bold mb-1">
-                          <a
-                            href={`/posts/${post.slug}`}
-                            class="hover:text-primary-600 dark:hover:text-primary-400"
-                          >
+                        <h3 class="font-bold mb-1 group-hover:text-accent transition-colors" style="color: var(--text);">
+                          <a href={`/posts/${post.slug}`}>
                             {post.title}
                           </a>
                         </h3>
-                        <p class="text-sm text-slate-600 dark:text-slate-400">
-                          by {author?.name} • {post.views} views
+                        <p class="text-sm flex items-center gap-2" style="color: var(--text-muted);">
+                          <span>by {author?.name}</span>
+                          <span>•</span>
+                          <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            {post.views}
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -175,15 +227,17 @@ const user = Astro.locals.user;
             <!-- Popular Tags -->
             {popularTags.length > 0 && (
               <div>
-                <h2 class="text-2xl font-bold mb-6">Popular Tags</h2>
-                <div class="flex flex-wrap gap-2">
+                <h2 class="text-2xl md:text-3xl font-bold mb-6" style="color: var(--text);">
+                  🏷️ Popular Tags
+                </h2>
+                <div class="flex flex-wrap gap-3">
                   {popularTags.map(({ tag, postCount }) => (
                     <a
                       href={`/tags/${tag.slug}`}
-                      class="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full hover:bg-primary-100 dark:hover:bg-primary-900 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+                      class="badge badge-info text-sm px-4 py-2 hover:scale-110 transition-all duration-200"
                     >
                       #{tag.name}
-                      <span class="text-xs opacity-60 ml-1">({postCount})</span>
+                      <span class="ml-1.5 font-bold">({postCount})</span>
                     </a>
                   ))}
                 </div>
@@ -195,27 +249,35 @@ const user = Astro.locals.user;
     )}
 
     <!-- Features Section -->
-    <section class="max-w-6xl mx-auto px-4 py-16">
-      <h2 class="text-3xl font-bold text-center mb-12">Why Pythoughts?</h2>
+    <section class="max-w-6xl mx-auto px-4 py-20">
+      <h2 class="text-3xl md:text-4xl font-bold text-center mb-4" style="color: var(--text);">
+        ✨ Why Pythoughts?
+      </h2>
+      <p class="text-center mb-12 text-lg" style="color: var(--text-muted);">
+        A modern platform packed with powerful features
+      </p>
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="card text-center">
-          <div class="text-5xl mb-4">🔒</div>
-          <h3 class="text-xl font-bold mb-3">Secure Authentication</h3>
-          <p class="text-slate-600 dark:text-slate-400">
+        <div class="card text-center group hover-lift">
+          <div class="text-6xl mb-6 group-hover:scale-110 transition-transform duration-300">🔒</div>
+          <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Secure Authentication</h3>
+          <p class="text-sm leading-relaxed" style="color: var(--text-muted);">
             Email verification, password reset, and role-based access control for complete security.
           </p>
         </div>
-        <div class="card text-center">
-          <div class="text-5xl mb-4">📝</div>
-          <h3 class="text-xl font-bold mb-3">Powerful Editor</h3>
-          <p class="text-slate-600 dark:text-slate-400">
+
+        <div class="card text-center group hover-lift">
+          <div class="text-6xl mb-6 group-hover:scale-110 transition-transform duration-300">📝</div>
+          <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Powerful Editor</h3>
+          <p class="text-sm leading-relaxed" style="color: var(--text-muted);">
             Write in Markdown with live preview, categories, tags, and featured images.
           </p>
         </div>
-        <div class="card text-center">
-          <div class="text-5xl mb-4">⚡</div>
-          <h3 class="text-xl font-bold mb-3">Lightning Fast</h3>
-          <p class="text-slate-600 dark:text-slate-400">
+
+        <div class="card text-center group hover-lift">
+          <div class="text-6xl mb-6 group-hover:scale-110 transition-transform duration-300">⚡</div>
+          <h3 class="text-xl font-bold mb-3" style="color: var(--text);">Lightning Fast</h3>
+          <p class="text-sm leading-relaxed" style="color: var(--text-muted);">
             Built with Astro and hybrid rendering for optimal performance and SEO.
           </p>
         </div>
@@ -224,18 +286,31 @@ const user = Astro.locals.user;
 
     <!-- CTA Section -->
     {!user && (
-      <section class="bg-primary-600 text-white py-16">
-        <div class="max-w-4xl mx-auto px-4 text-center">
-          <h2 class="text-4xl font-bold mb-4">Ready to Start Writing?</h2>
-          <p class="text-xl mb-8 opacity-90">
+      <section class="relative overflow-hidden py-20 my-16 mx-4 rounded-3xl" style="background: linear-gradient(135deg, var(--accent) 0%, var(--info) 100%);">
+        <div class="absolute inset-0 opacity-10">
+          <div class="absolute top-0 left-0 w-72 h-72 bg-white rounded-full blur-3xl"></div>
+          <div class="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+          <div class="inline-block mb-4 px-4 py-2 rounded-full border-2 border-white/30" style="background: rgba(255, 255, 255, 0.1); color: white;">
+            <span class="text-sm font-semibold">🚀 Join the Community</span>
+          </div>
+
+          <h2 class="text-4xl md:text-5xl font-bold mb-6 text-white dark:terminal-glow">
+            Ready to Start Writing?
+          </h2>
+
+          <p class="text-xl mb-10 text-white/90 max-w-2xl mx-auto">
             Join our community of writers and share your thoughts with the world.
           </p>
-          <div class="flex gap-4 justify-center">
-            <a href="/auth/register" class="btn bg-white text-primary-600 hover:bg-slate-100">
-              Sign Up Now
+
+          <div class="flex flex-wrap gap-4 justify-center">
+            <a href="/auth/register" class="btn btn-secondary text-lg shadow-2xl" style="background: white; color: var(--accent);">
+              🎯 Sign Up Now
             </a>
-            <a href="/auth/login" class="btn bg-primary-700 text-white hover:bg-primary-800">
-              Sign In
+            <a href="/auth/login" class="btn btn-outline text-lg text-white border-white hover:bg-white/10">
+              👋 Sign In
             </a>
           </div>
         </div>

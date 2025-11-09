@@ -1,10 +1,39 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
-  darkMode: 'class',
+  darkMode: ['class', '[data-theme="dark"]'],
   theme: {
     extend: {
       colors: {
+        bg: 'var(--bg)',
+        surface: 'var(--surface)',
+        border: 'var(--border)',
+        text: 'var(--text)',
+        textMuted: 'var(--text-muted)',
+        accent: {
+          DEFAULT: 'var(--accent)',
+          hover: 'var(--accent-hover)',
+          subtle: 'var(--accent-subtle)',
+          fg: 'var(--accent-fg)',
+        },
+        success: {
+          DEFAULT: 'var(--success)',
+          subtle: 'var(--success-subtle)',
+          fg: 'var(--success-fg)',
+        },
+        error: {
+          DEFAULT: 'var(--error)',
+          subtle: 'var(--error-subtle)',
+          fg: 'var(--error-fg)',
+        },
+        info: {
+          DEFAULT: 'var(--info)',
+          subtle: 'var(--info-subtle)',
+          fg: 'var(--info-fg)',
+        },
+        focus: 'var(--focus)',
+        selection: 'var(--selection)',
+        // Keep primary for backwards compatibility
         primary: {
           50: '#f0f9ff',
           100: '#e0f2fe',
@@ -27,12 +56,34 @@ export default {
         DEFAULT: {
           css: {
             maxWidth: '75ch',
-            color: 'inherit',
+            color: 'var(--text)',
             a: {
-              color: '#0ea5e9',
+              color: 'var(--accent)',
               '&:hover': {
-                color: '#0284c7',
+                color: 'var(--accent-hover)',
               },
+            },
+            h1: {
+              color: 'var(--text)',
+            },
+            h2: {
+              color: 'var(--text)',
+            },
+            h3: {
+              color: 'var(--text)',
+            },
+            h4: {
+              color: 'var(--text)',
+            },
+            code: {
+              color: 'var(--text)',
+              backgroundColor: 'var(--surface)',
+            },
+            'code::before': {
+              content: '""',
+            },
+            'code::after': {
+              content: '""',
             },
           },
         },
