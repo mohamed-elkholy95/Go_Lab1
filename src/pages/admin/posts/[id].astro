@@ -82,19 +82,16 @@ const title = isEditing ? `Edit Post: ${post.post.title}` : 'Create New Post';
         <label class="block text-sm font-medium mb-2">
           Content <span class="text-red-500">*</span>
         </label>
-        <PostEditor
-          client:load
-          initialContent={isEditing ? post.post.content : ''}
-          onContentChange={(html) => {
-            const contentField = document.getElementById('content-hidden');
-            if (contentField) contentField.value = html;
-          }}
-        />
         <input
           type="hidden"
           id="content-hidden"
           name="content"
           value={isEditing ? post.post.content : ''}
+        />
+        <PostEditor
+          client:load
+          initialContent={isEditing ? post.post.content : ''}
+          hiddenFieldId="content-hidden"
         />
       </div>
 

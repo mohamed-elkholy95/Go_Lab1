@@ -5,7 +5,7 @@
   import { Image, Video } from 'lucide-svelte';
 
   export let initialContent: string = '';
-  export let onContentChange: ((html: string) => void) | undefined = undefined;
+  export let hiddenFieldId: string = 'content-hidden';
 
   let content = initialContent;
   let showMediaLibrary = false;
@@ -15,8 +15,10 @@
 
   function handleContentUpdate(html: string) {
     content = html;
-    if (onContentChange) {
-      onContentChange(html);
+    // Update the hidden field
+    const hiddenField = document.getElementById(hiddenFieldId) as HTMLInputElement;
+    if (hiddenField) {
+      hiddenField.value = html;
     }
   }
 
