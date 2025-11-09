@@ -1,34 +1,30 @@
 [
   {
-    "content": "Define color tokens and typography system in global.css",
-    "status": "completed"
-  },
-  {
-    "content": "Update Header.astro - remove book icon, keep traffic dots only",
-    "status": "completed"
-  },
-  {
-    "content": "Create TerminalFrame component for terminal window aesthetics",
-    "status": "completed"
-  },
-  {
-    "content": "Apply terminal styling to homepage",
+    "content": "Update hero banner with Python/tech gradient colors",
     "status": "in_progress"
   },
   {
-    "content": "Update button, input, and card components with new tokens",
+    "content": "Add Python-style terminal prompts (>>> and ...)",
     "status": "pending"
   },
   {
-    "content": "Apply terminal theme to auth pages",
+    "content": "Implement Python blue/yellow accent colors",
     "status": "pending"
   },
   {
-    "content": "Update admin dashboard with terminal styling",
+    "content": "Add tech-inspired code blocks and syntax styling",
     "status": "pending"
   },
   {
-    "content": "Test dark/light mode transitions and contrast",
+    "content": "Update buttons with Python command style",
+    "status": "pending"
+  },
+  {
+    "content": "Add animated tech background patterns",
+    "status": "pending"
+  },
+  {
+    "content": "Test complete Python-themed experience",
     "status": "pending"
   }
 ]
