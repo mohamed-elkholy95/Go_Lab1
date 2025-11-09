@@ -10,7 +10,7 @@ const minioConfig = {
 };
 
 // Default bucket name
-export const MEDIA_BUCKET = import.meta.env.MINIO_BUCKET || 'pythoughts-media';
+export const MEDIA_BUCKET = import.meta.env.MINIO_BUCKET || 'proxyforms-media';
 
 // Create MinIO client instance
 export const minioClient = new Client(minioConfig);

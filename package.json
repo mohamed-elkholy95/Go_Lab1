@@ -1,8 +1,8 @@
 {
-  "name": "pythoughts",
+  "name": "proxyforms",
   "type": "module",
   "version": "1.0.0",
-  "description": "Full-stack blogging platform with authentication and content management",
+  "description": "ProxyForms - Full-stack blogging platform with rich text editing and media management",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
@@ -38,6 +38,7 @@
     "astro-expressive-code": "^0.41.3",
     "drizzle-orm": "^0.36.4",
     "better-auth": "^1.1.4",
+    "lucide-svelte": "^0.468.0",
     "marked": "^15.0.4",
     "minio": "^8.0.2",
     "pagefind": "^1.1.1",

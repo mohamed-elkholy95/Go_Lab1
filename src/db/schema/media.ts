@@ -38,7 +38,7 @@ export const mediaFiles = pgTable('media_files', {
   fileSize: integer('file_size').notNull(), // in bytes
 
   // Storage information
-  bucket: varchar('bucket', { length: 100 }).notNull().default('pythoughts-media'),
+  bucket: varchar('bucket', { length: 100 }).notNull().default('proxyforms-media'),
   objectKey: varchar('object_key', { length: 500 }).notNull(), // MinIO object key/path
   url: varchar('url', { length: 1000 }).notNull(), // Full URL to access the file
 
@@ -85,7 +85,7 @@ export const mediaThumbnails = pgTable('media_thumbnails', {
   height: integer('height').notNull(),
 
   // Storage information
-  bucket: varchar('bucket', { length: 100 }).notNull().default('pythoughts-media'),
+  bucket: varchar('bucket', { length: 100 }).notNull().default('proxyforms-media'),
   objectKey: varchar('object_key', { length: 500 }).notNull(),
   url: varchar('url', { length: 1000 }).notNull(),
   fileSize: integer('file_size').notNull(),

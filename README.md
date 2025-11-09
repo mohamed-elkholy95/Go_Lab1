@@ -1,6 +1,6 @@
-# Pythoughts - Full-Stack Blogging Platform
+# ProxyForms - Full-Stack Blogging Platform
 
-A modern, full-featured blogging platform built with Astro, TypeScript, PostgreSQL, and Drizzle ORM. Features user authentication, database-driven content management, email functionality, and a comprehensive admin panel.
+A modern, full-featured blogging platform built with Astro, TypeScript, PostgreSQL, and Drizzle ORM. Features user authentication, rich text editing with TipTap, self-hosted media storage with MinIO, and a comprehensive admin panel.
 
 ## 🚀 Features
 
@@ -59,18 +59,18 @@ Required environment variables:
 
 ```env
 # Database
-DATABASE_URL=postgresql://user:password@localhost:5432/pythoughts
+DATABASE_URL=postgresql://user:password@localhost:5432/proxyforms
 
 # Authentication
 AUTH_SECRET=your-secret-key-here-min-32-characters-long
 
 # Resend Email Service
 RESEND_API_KEY=re_xxxxxxxxxxxxx
-RESEND_FROM_EMAIL=noreply@pythoughts.com
+RESEND_FROM_EMAIL=noreply@proxyforms.com
 
 # Site Configuration
 SITE_URL=http://localhost:4321
-PUBLIC_SITE_NAME=Pythoughts
+PUBLIC_SITE_NAME=ProxyForms
 
 # Post Scheduler (for cron job authentication)
 SCHEDULER_TOKEN=your-secure-random-token-here

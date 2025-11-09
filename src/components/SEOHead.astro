@@ -30,16 +30,16 @@ const {
   modifiedTime,
   author,
   tags = [],
-  siteName = 'Pythoughts',
+  siteName = 'ProxyForms',
 } = Astro.props;
 
 // Construct full URL for image
 const fullImageUrl = image
-  ? new URL(image, Astro.site || 'https://pythoughts.com').toString()
+  ? new URL(image, Astro.site || 'https://proxyforms.com').toString()
   : undefined;
 
 // Construct full canonical URL
-const canonicalUrl = new URL(url, Astro.site || 'https://pythoughts.com').toString();
+const canonicalUrl = new URL(url, Astro.site || 'https://proxyforms.com').toString();
 
 // Twitter card type based on image
 const twitterCard = image ? 'summary_large_image' : 'summary';
@@ -119,7 +119,7 @@ const twitterCard = image ? 'summary_large_image' : 'summary';
       "name": siteName,
       "logo": {
         "@type": "ImageObject",
-        "url": new URL('/favicon.svg', Astro.site || 'https://pythoughts.com').toString()
+        "url": new URL('/favicon.svg', Astro.site || 'https://proxyforms.com').toString()
       }
     },
     "mainEntityOfPage": {
