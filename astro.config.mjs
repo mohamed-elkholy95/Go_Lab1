@@ -10,6 +10,10 @@ export default defineConfig({
   adapter: node({
     mode: 'standalone'
   }),
+  server: {
+    host: '0.0.0.0', // Listen on all network interfaces for Docker
+    port: 4321
+  },
   integrations: [
     expressiveCode({
       themes: ['dracula', 'github-light'],
@@ -28,7 +32,7 @@ export default defineConfig({
       exclude: ['oslo']
     }
   },
-  site: 'https://pythoughts.com',
+  site: 'https://proxyforms.com',
   markdown: {
     shikiConfig: {
       theme: 'dracula',
