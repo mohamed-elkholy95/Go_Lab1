@@ -1,12 +1,10 @@
 # Nixpacks Configuration for Pythoughts Platform
-# Optimized for Dokploy deployment with Astro, PostgreSQL, and Node.js
+# Optimized for Dokploy deployment with Astro and Node.js
 
 # ============================================================================
 # PROVIDERS
 # ============================================================================
-[providers]
-# Use Node.js as the primary provider
-node = true
+providers = ["node"]
 
 # ============================================================================
 # PHASES - Build Process Configuration
@@ -20,7 +18,8 @@ nixPkgs = [
   "nodejs_20",      # Node.js 20 LTS
   "npm",            # NPM package manager
   "python3",        # Python for node-gyp
-  "build-essential" # Build tools for native modules
+  "gcc",            # C compiler for native modules
+  "gnumake"         # Make for build tools
 ]
 
 # ----------------------------------------------------------------------------
@@ -28,8 +27,6 @@ nixPkgs = [
 # ----------------------------------------------------------------------------
 [phases.install]
 dependsOn = ["setup"]
-
-# Use npm ci for faster, reproducible installs
 cmds = [
   "npm ci --legacy-peer-deps --prefer-offline --no-audit"
 ]
@@ -39,7 +36,6 @@ cmds = [
 # ----------------------------------------------------------------------------
 [phases.build]
 dependsOn = ["install"]
-
 cmds = [
   # Type checking
   "npx astro check",
@@ -47,7 +43,7 @@ cmds = [
   # Build the application
   "npm run build",
 
-  # Verify build output
+  # Verify build output exists
   "ls -la dist/"
 ]
 
@@ -71,51 +67,7 @@ PORT = "3000"
 
 # Astro configuration
 PUBLIC_SITE_NAME = "Pythoughts"
-
-# Build optimizations
 ASTRO_TELEMETRY_DISABLED = "1"
+
+# NPM configuration
 NPM_CONFIG_LOGLEVEL = "error"
-
-# ============================================================================
-# BUILD CONFIGURATION
-# ============================================================================
-[build]
-# Cache node_modules for faster rebuilds
-cache = [
-  "node_modules",
-  ".npm",
-  ".astro"
-]
-
-# ============================================================================
-# STATIC FILES
-# ============================================================================
-[staticAssets]
-# Serve static files from dist directory
-directory = "dist/client"
-
-# ============================================================================
-# HEALTH CHECK
-# ============================================================================
-[healthcheck]
-# HTTP health check on root path
-path = "/"
-interval = "30s"
-timeout = "10s"
-retries = 3
-
-# ============================================================================
-# OPTIMIZATION
-# ============================================================================
-[optimization]
-# Enable build optimizations
-minify = true
-sourcemaps = false
-
-# ============================================================================
-# PATHS
-# ============================================================================
-[paths]
-# Working directory
-buildDir = "."
-outputDir = "dist"
