@@ -186,15 +186,16 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
         const data = await response.json();
 
         if (response.ok) {
+          const email = formData.get('email');
           successMessage.textContent =
-            'Account created successfully! Please check your email to verify your account.';
+            'Account created successfully! Redirecting to verification...';
           successMessage.classList.remove('hidden');
           errorMessage.classList.add('hidden');
 
-          // Redirect to login after 2 seconds
+          // Redirect to verification page after 1 second
           setTimeout(() => {
-            window.location.href = '/auth/login';
-          }, 2000);
+            window.location.href = `/auth/verify-code?email=${encodeURIComponent(email)}`;
+          }, 1000);
         } else {
           errorMessage.textContent = data.message || 'Failed to create account';
           errorMessage.classList.remove('hidden');

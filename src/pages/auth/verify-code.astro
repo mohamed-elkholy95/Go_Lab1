@@ -1,0 +1,217 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+const email = Astro.url.searchParams.get('email');
+---
+
+<BaseLayout title="Verify Email - Pythoughts">
+  <div class="min-h-screen flex items-center justify-center p-4 py-12" style="background: var(--bg);">
+    <div class="w-full max-w-md">
+      <!-- Logo/Brand -->
+      <div class="text-center mb-8">
+        <h2 class="text-4xl font-bold mb-2 dark:neon-glow" style="color: var(--accent);">
+          Pythoughts
+        </h2>
+        <div class="h-1 w-20 mx-auto rounded-full glow-gradient"></div>
+      </div>
+
+      <div class="card success-glow">
+        <div class="text-center mb-8">
+          <div class="text-5xl mb-4">📧</div>
+          <h1 class="text-3xl font-bold mb-2" style="color: var(--text);">
+            Check Your Email
+          </h1>
+          <p style="color: var(--text-muted);">
+            We've sent a verification code to
+          </p>
+          <p class="font-semibold mt-1" style="color: var(--accent);">
+            {email}
+          </p>
+        </div>
+
+        <form id="verify-form" class="space-y-6">
+          <div>
+            <label for="code" class="block text-sm font-medium mb-2 text-center" style="color: var(--text);">
+              Enter Verification Code
+            </label>
+            <input
+              type="text"
+              id="code"
+              name="code"
+              required
+              maxlength="32"
+              class="input text-center text-2xl font-mono tracking-wider"
+              placeholder="Enter code"
+              autocomplete="off"
+              style="letter-spacing: 0.2em;"
+            />
+            <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+              Code expires in 24 hours
+            </p>
+          </div>
+
+          <div id="error-message" class="hidden p-3 rounded-lg text-sm" style="background: var(--error-subtle); color: var(--error);">
+          </div>
+
+          <div id="success-message" class="hidden p-3 rounded-lg text-sm success-glow" style="background: var(--success-subtle); color: var(--success);">
+          </div>
+
+          <button type="submit" class="btn btn-success w-full text-base">
+            <span class="flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Verify Email
+            </span>
+          </button>
+        </form>
+
+        <div class="mt-6 pt-6 border-t text-center space-y-3" style="border-color: var(--border);">
+          <p class="text-sm" style="color: var(--text-muted);">
+            Didn't receive the code?
+            <button
+              id="resend-button"
+              class="link font-semibold"
+            >
+              Resend code
+            </button>
+          </p>
+          <p class="text-sm" style="color: var(--text-muted);">
+            Wrong email?
+            <a
+              href="/auth/register"
+              class="link font-semibold"
+            >
+              Go back
+            </a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Help Section -->
+      <div class="mt-8 p-4 rounded-lg" style="background: var(--surface); border: 1px solid var(--border);">
+        <h3 class="font-semibold mb-2" style="color: var(--text);">
+          💡 Verification Tips
+        </h3>
+        <ul class="text-sm space-y-1" style="color: var(--text-muted);">
+          <li>• Check your spam/junk folder</li>
+          <li>• Code is case-sensitive</li>
+          <li>• Click the link in email for instant verification</li>
+          <li>• Request a new code if needed</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script define:vars={{ email }}>
+    const form = document.getElementById('verify-form');
+    const errorMessage = document.getElementById('error-message');
+    const successMessage = document.getElementById('success-message');
+    const resendButton = document.getElementById('resend-button');
+    const codeInput = document.getElementById('code');
+
+    // Auto-focus code input
+    codeInput?.focus();
+
+    // Format code input (uppercase, remove spaces)
+    codeInput?.addEventListener('input', (e) => {
+      e.target.value = e.target.value.toUpperCase().replace(/\s/g, '');
+    });
+
+    // Handle form submission
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const code = formData.get('code');
+
+      if (!code || code.length < 6) {
+        errorMessage.textContent = 'Please enter a valid verification code';
+        errorMessage.classList.remove('hidden');
+        successMessage.classList.add('hidden');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/verify-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: email,
+            token: code,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          successMessage.textContent = 'Email verified successfully! Redirecting to login...';
+          successMessage.classList.remove('hidden');
+          errorMessage.classList.add('hidden');
+
+          // Redirect to login after 2 seconds
+          setTimeout(() => {
+            window.location.href = '/auth/login';
+          }, 2000);
+        } else {
+          errorMessage.textContent = data.message || 'Invalid or expired verification code';
+          errorMessage.classList.remove('hidden');
+          successMessage.classList.add('hidden');
+        }
+      } catch (error) {
+        errorMessage.textContent = 'An error occurred. Please try again.';
+        errorMessage.classList.remove('hidden');
+        successMessage.classList.add('hidden');
+      }
+    });
+
+    // Handle resend button
+    resendButton?.addEventListener('click', async () => {
+      if (!email) {
+        errorMessage.textContent = 'Email address is missing';
+        errorMessage.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        resendButton.textContent = 'Sending...';
+        resendButton.disabled = true;
+
+        const response = await fetch('/api/auth/resend-verification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email }),
+        });
+
+        if (response.ok) {
+          successMessage.textContent = 'Verification code resent! Check your email.';
+          successMessage.classList.remove('hidden');
+          errorMessage.classList.add('hidden');
+
+          // Reset button after 60 seconds
+          setTimeout(() => {
+            resendButton.textContent = 'Resend code';
+            resendButton.disabled = false;
+          }, 60000);
+        } else {
+          const data = await response.json();
+          errorMessage.textContent = data.message || 'Failed to resend verification code';
+          errorMessage.classList.remove('hidden');
+          successMessage.classList.add('hidden');
+          resendButton.textContent = 'Resend code';
+          resendButton.disabled = false;
+        }
+      } catch (error) {
+        errorMessage.textContent = 'An error occurred. Please try again.';
+        errorMessage.classList.remove('hidden');
+        successMessage.classList.add('hidden');
+        resendButton.textContent = 'Resend code';
+        resendButton.disabled = false;
+      }
+    });
+  </script>
+</BaseLayout>

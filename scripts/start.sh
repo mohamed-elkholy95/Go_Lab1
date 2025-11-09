@@ -49,6 +49,29 @@ else
   echo "✅ Authentication URL configured: $BETTER_AUTH_URL"
 fi
 
+# Check RESEND_API_KEY (required for email verification)
+if [ -z "$RESEND_API_KEY" ]; then
+  echo "⚠️  WARNING: RESEND_API_KEY is not set"
+  echo ""
+  echo "Email verification will NOT work without Resend API key"
+  echo "Get your API key from: https://resend.com/api-keys"
+  echo "Then add RESEND_API_KEY to Dokploy → Your App → Settings → Environment Variables"
+  echo ""
+  echo "Application will start, but users won't receive verification emails"
+  echo ""
+else
+  echo "✅ Email service configured (Resend)"
+fi
+
+# Check RESEND_FROM_EMAIL (recommended for email verification)
+if [ -z "$RESEND_FROM_EMAIL" ]; then
+  echo "⚠️  WARNING: RESEND_FROM_EMAIL is not set"
+  echo "Using default: noreply@pythoughts.com"
+  echo "For production, set a verified sending domain in Resend"
+else
+  echo "✅ Email sender configured: $RESEND_FROM_EMAIL"
+fi
+
 echo ""
 
 # ============================================================================
