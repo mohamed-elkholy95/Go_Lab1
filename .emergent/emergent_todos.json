@@ -21,10 +21,10 @@
   },
   {
     "content": "Start services and verify the app is running",
-    "status": "in_progress"
+    "status": "completed"
   },
   {
     "content": "Test the application and fix any issues",
-    "status": "pending"
+    "status": "in_progress"
   }
 ]
