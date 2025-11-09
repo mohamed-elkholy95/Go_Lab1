@@ -23,11 +23,9 @@ const user = Astro.locals.user;
   </div>
 </BaseLayout>
 
-<script>
-  // @ts-ignore
-  import { PagefindUI } from '@pagefind/default-ui';
-
+<script is:inline>
   window.addEventListener('DOMContentLoaded', () => {
+    // PagefindUI is loaded globally via the inline script below
     new PagefindUI({
       element: '#search',
       showSubResults: true,
