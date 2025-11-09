@@ -1,11 +1,11 @@
 [
   {
     "content": "Set up PostgreSQL database and create pythoughts database with user",
-    "status": "in_progress"
+    "status": "completed"
   },
   {
     "content": "Install dependencies in /app/Go_Lab1 directory using yarn",
-    "status": "pending"
+    "status": "in_progress"
   },
   {
     "content": "Create .env file with PostgreSQL connection and skip email configuration",
