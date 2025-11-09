@@ -8,13 +8,18 @@
 import { pgTable, text, boolean, timestamp } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-// User table (Better Auth core table)
+// User table (Better Auth core table with custom fields)
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
   emailVerified: boolean('emailVerified').default(false).notNull(),
   image: text('image'),
+  // Custom additional fields
+  username: text('username').notNull().unique(),
+  role: text('role').notNull().default('user'),
+  bio: text('bio'),
+  avatarUrl: text('avatarUrl'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });
