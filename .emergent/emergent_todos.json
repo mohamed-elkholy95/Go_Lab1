@@ -13,11 +13,11 @@
   },
   {
     "content": "Run database migrations to set up schema",
-    "status": "in_progress"
+    "status": "completed"
   },
   {
     "content": "Update supervisor configuration to run Astro app instead of FastAPI/React",
-    "status": "pending"
+    "status": "in_progress"
   },
   {
     "content": "Start services and verify the app is running",
