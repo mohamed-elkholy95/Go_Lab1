@@ -17,11 +17,11 @@
   },
   {
     "content": "Update supervisor configuration to run Astro app instead of FastAPI/React",
-    "status": "in_progress"
+    "status": "completed"
   },
   {
     "content": "Start services and verify the app is running",
-    "status": "pending"
+    "status": "in_progress"
   },
   {
     "content": "Test the application and fix any issues",
