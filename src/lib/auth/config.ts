@@ -7,9 +7,10 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema: {
-      user: schema.users,
-      session: schema.sessions,
-      verification: schema.emailVerifications,
+      user: schema.user,
+      session: schema.session,
+      account: schema.account,
+      verification: schema.verification,
     },
   }),
   emailAndPassword: {
@@ -50,7 +51,9 @@ export const auth = betterAuth({
     },
   },
   advanced: {
-    generateId: () => crypto.randomUUID(),
+    database: {
+      generateId: () => crypto.randomUUID(),
+    },
   },
 });
 
