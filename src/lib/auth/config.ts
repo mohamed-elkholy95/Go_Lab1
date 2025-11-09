@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { db } from '@/db';
 import * as schema from '@/db/schema';
+import { sendVerificationEmail } from '@/lib/email/utils';
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -15,6 +16,24 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
+    async sendVerificationEmail({ user, url, token }) {
+      try {
+        // Extract token from the full URL
+        const verificationToken = token || new URL(url).searchParams.get('token') || '';
+
+        // Send verification email using our Resend integration
+        await sendVerificationEmail(
+          user.email,
+          user.name || user.email.split('@')[0],
+          verificationToken
+        );
+
+        console.log(`Verification email sent to ${user.email}`);
+      } catch (error) {
+        console.error('Failed to send verification email:', error);
+        throw new Error('Failed to send verification email');
+      }
+    },
   },
   socialProviders: {
     // Add social providers if needed (GitHub, Google, etc.)
