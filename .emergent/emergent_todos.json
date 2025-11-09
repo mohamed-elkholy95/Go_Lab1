@@ -1,30 +1,18 @@
 [
   {
-    "content": "Update hero banner with Python/tech gradient colors",
-    "status": "completed"
+    "content": "Remove extra symbols from navigation (>>> prompts)",
+    "status": "in_progress"
   },
   {
-    "content": "Add Python-style terminal prompts (>>> and ...)",
-    "status": "completed"
+    "content": "Standardize button colors globally for consistency",
+    "status": "pending"
   },
   {
-    "content": "Implement Python blue/yellow accent colors",
-    "status": "completed"
+    "content": "Debug and fix auth sign-up route errors",
+    "status": "pending"
   },
   {
-    "content": "Add tech-inspired code blocks and syntax styling",
-    "status": "completed"
-  },
-  {
-    "content": "Update buttons with Python command style",
-    "status": "completed"
-  },
-  {
-    "content": "Add animated tech background patterns",
-    "status": "completed"
-  },
-  {
-    "content": "Test complete Python-themed experience",
-    "status": "completed"
+    "content": "Test complete auth flow (register + login)",
+    "status": "pending"
   }
 ]
