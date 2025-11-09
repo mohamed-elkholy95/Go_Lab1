@@ -9,11 +9,11 @@
   },
   {
     "content": "Create .env file with PostgreSQL connection and skip email configuration",
-    "status": "in_progress"
+    "status": "completed"
   },
   {
     "content": "Run database migrations to set up schema",
-    "status": "pending"
+    "status": "in_progress"
   },
   {
     "content": "Update supervisor configuration to run Astro app instead of FastAPI/React",
