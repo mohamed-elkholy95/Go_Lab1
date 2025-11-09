@@ -15,8 +15,7 @@ providers = ["node"]
 # ----------------------------------------------------------------------------
 [phases.setup]
 nixPkgs = [
-  "nodejs_20",      # Node.js 20 LTS
-  "npm",            # NPM package manager
+  "nodejs_20",      # Node.js 20 LTS (includes npm)
   "python3",        # Python for node-gyp
   "gcc",            # C compiler for native modules
   "gnumake"         # Make for build tools
