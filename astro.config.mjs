@@ -6,7 +6,7 @@ import expressiveCode from 'astro-expressive-code';
 
 // https://astro.build/config
 export default defineConfig({
-  output: 'hybrid', // Enables both static and SSR rendering
+  output: 'server', // Server-side rendering (hybrid removed in Astro 5)
   adapter: node({
     mode: 'standalone'
   }),
