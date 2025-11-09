@@ -5,7 +5,7 @@
   },
   {
     "content": "Test and fix authentication configuration",
-    "status": "in_progress"
+    "status": "completed"
   },
   {
     "content": "Add Lucide icon logo next to Pythoughts branding",
@@ -25,7 +25,7 @@
   },
   {
     "content": "Test admin dashboard access and functionality",
-    "status": "pending"
+    "status": "in_progress"
   },
   {
     "content": "Verify post/blog moderation features",
