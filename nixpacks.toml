@@ -1,0 +1,121 @@
+# Nixpacks Configuration for Pythoughts Platform
+# Optimized for Dokploy deployment with Astro, PostgreSQL, and Node.js
+
+# ============================================================================
+# PROVIDERS
+# ============================================================================
+[providers]
+# Use Node.js as the primary provider
+node = true
+
+# ============================================================================
+# PHASES - Build Process Configuration
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# SETUP PHASE - Install system dependencies
+# ----------------------------------------------------------------------------
+[phases.setup]
+nixPkgs = [
+  "nodejs_20",      # Node.js 20 LTS
+  "npm",            # NPM package manager
+  "python3",        # Python for node-gyp
+  "build-essential" # Build tools for native modules
+]
+
+# ----------------------------------------------------------------------------
+# INSTALL PHASE - Install Node.js dependencies
+# ----------------------------------------------------------------------------
+[phases.install]
+dependsOn = ["setup"]
+
+# Use npm ci for faster, reproducible installs
+cmds = [
+  "npm ci --legacy-peer-deps --prefer-offline --no-audit"
+]
+
+# ----------------------------------------------------------------------------
+# BUILD PHASE - Build the application
+# ----------------------------------------------------------------------------
+[phases.build]
+dependsOn = ["install"]
+
+cmds = [
+  # Type checking
+  "npx astro check",
+
+  # Build the application
+  "npm run build",
+
+  # Verify build output
+  "ls -la dist/"
+]
+
+# ----------------------------------------------------------------------------
+# START PHASE - Run the application
+# ----------------------------------------------------------------------------
+[start]
+cmd = "node dist/server/entry.mjs"
+
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
+[variables]
+# Node environment
+NODE_ENV = "production"
+NODE_VERSION = "20"
+
+# Server configuration
+HOST = "0.0.0.0"
+PORT = "3000"
+
+# Astro configuration
+PUBLIC_SITE_NAME = "Pythoughts"
+
+# Build optimizations
+ASTRO_TELEMETRY_DISABLED = "1"
+NPM_CONFIG_LOGLEVEL = "error"
+
+# ============================================================================
+# BUILD CONFIGURATION
+# ============================================================================
+[build]
+# Cache node_modules for faster rebuilds
+cache = [
+  "node_modules",
+  ".npm",
+  ".astro"
+]
+
+# ============================================================================
+# STATIC FILES
+# ============================================================================
+[staticAssets]
+# Serve static files from dist directory
+directory = "dist/client"
+
+# ============================================================================
+# HEALTH CHECK
+# ============================================================================
+[healthcheck]
+# HTTP health check on root path
+path = "/"
+interval = "30s"
+timeout = "10s"
+retries = 3
+
+# ============================================================================
+# OPTIMIZATION
+# ============================================================================
+[optimization]
+# Enable build optimizations
+minify = true
+sourcemaps = false
+
+# ============================================================================
+# PATHS
+# ============================================================================
+[paths]
+# Working directory
+buildDir = "."
+outputDir = "dist"
