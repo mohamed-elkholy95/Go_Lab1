@@ -5,11 +5,11 @@
   },
   {
     "content": "Install dependencies in /app/Go_Lab1 directory using yarn",
-    "status": "in_progress"
+    "status": "completed"
   },
   {
     "content": "Create .env file with PostgreSQL connection and skip email configuration",
-    "status": "pending"
+    "status": "in_progress"
   },
   {
     "content": "Run database migrations to set up schema",
