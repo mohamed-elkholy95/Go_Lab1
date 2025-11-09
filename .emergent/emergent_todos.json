@@ -1,18 +1,18 @@
 [
   {
     "content": "Remove extra symbols from navigation (>>> prompts)",
-    "status": "in_progress"
+    "status": "completed"
   },
   {
     "content": "Standardize button colors globally for consistency",
-    "status": "pending"
+    "status": "completed"
   },
   {
     "content": "Debug and fix auth sign-up route errors",
-    "status": "pending"
+    "status": "completed"
   },
   {
     "content": "Test complete auth flow (register + login)",
-    "status": "pending"
+    "status": "in_progress"
   }
 ]
