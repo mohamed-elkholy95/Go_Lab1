@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '@/layouts/AdminLayout.astro';
+import PostEditor from '@/components/PostEditor.svelte';
 import { getPostById } from '@/lib/services/posts';
 import { getCategories, getTags } from '@/lib/services/categories';
 
@@ -76,22 +77,25 @@ const title = isEditing ? `Edit Post: ${post.post.title}` : 'Create New Post';
         </p>
       </div>
 
-      <!-- Content -->
+      <!-- Content Editor -->
       <div class="card">
-        <label for="content" class="block text-sm font-medium mb-2">
-          Content (Markdown) <span class="text-red-500">*</span>
+        <label class="block text-sm font-medium mb-2">
+          Content <span class="text-red-500">*</span>
         </label>
-        <textarea
-          id="content"
+        <PostEditor
+          client:load
+          initialContent={isEditing ? post.post.content : ''}
+          onContentChange={(html) => {
+            const contentField = document.getElementById('content-hidden');
+            if (contentField) contentField.value = html;
+          }}
+        />
+        <input
+          type="hidden"
+          id="content-hidden"
           name="content"
-          required
-          rows="20"
-          class="input font-mono"
-          placeholder="Write your post content in Markdown..."
-        >{isEditing ? post.post.content : ''}</textarea>
-        <p class="text-xs text-slate-500 mt-1">
-          Supports Markdown formatting
-        </p>
+          value={isEditing ? post.post.content : ''}
+        />
       </div>
 
       <!-- Excerpt -->

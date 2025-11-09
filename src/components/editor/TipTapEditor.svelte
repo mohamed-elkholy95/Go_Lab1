@@ -194,6 +194,23 @@
     if (editor) editor.chain().focus().toggleCodeBlock().run();
   }
 
+  // Exposed methods for external use
+  export function insertImage(src: string, alt: string = '') {
+    if (editor) {
+      editor.chain().focus().setImage({ src, alt }).run();
+    }
+  }
+
+  export function insertVideo(url: string) {
+    if (editor) {
+      editor.commands.setYoutubeVideo({ src: url });
+    }
+  }
+
+  export function getHTML(): string {
+    return editor ? editor.getHTML() : '';
+  }
+
   $: if (editor && content !== editor.getHTML()) {
     editor.commands.setContent(content);
   }
