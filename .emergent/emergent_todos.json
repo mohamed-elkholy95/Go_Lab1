@@ -1,38 +1,34 @@
 [
   {
-    "content": "Add Resend API key to .env file",
-    "status": "completed"
-  },
-  {
-    "content": "Test and fix authentication configuration",
-    "status": "completed"
-  },
-  {
-    "content": "Add Lucide icon logo next to Pythoughts branding",
-    "status": "completed"
-  },
-  {
-    "content": "Implement dark theme toggle with consistent styling",
-    "status": "completed"
-  },
-  {
-    "content": "Add macOS terminal-style traffic dots to UI components",
-    "status": "completed"
-  },
-  {
-    "content": "Ensure all icons use Lucide React consistently",
-    "status": "completed"
-  },
-  {
-    "content": "Test admin dashboard access and functionality",
+    "content": "Define color tokens and typography system in global.css",
     "status": "in_progress"
   },
   {
-    "content": "Verify post/blog moderation features",
+    "content": "Update Header.astro - remove book icon, keep traffic dots only",
     "status": "pending"
   },
   {
-    "content": "Test complete user registration flow with email",
+    "content": "Create TerminalFrame component for terminal window aesthetics",
+    "status": "pending"
+  },
+  {
+    "content": "Apply terminal styling to homepage",
+    "status": "pending"
+  },
+  {
+    "content": "Update button, input, and card components with new tokens",
+    "status": "pending"
+  },
+  {
+    "content": "Apply terminal theme to auth pages",
+    "status": "pending"
+  },
+  {
+    "content": "Update admin dashboard with terminal styling",
+    "status": "pending"
+  },
+  {
+    "content": "Test dark/light mode transitions and contrast",
     "status": "pending"
   }
 ]
