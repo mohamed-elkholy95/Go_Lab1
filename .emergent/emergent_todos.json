@@ -1,30 +1,38 @@
 [
   {
-    "content": "Set up PostgreSQL database and create pythoughts database with user",
-    "status": "completed"
+    "content": "Add Resend API key to .env file",
+    "status": "in_progress"
   },
   {
-    "content": "Install dependencies in /app/Go_Lab1 directory using yarn",
-    "status": "completed"
+    "content": "Test and fix authentication configuration",
+    "status": "pending"
   },
   {
-    "content": "Create .env file with PostgreSQL connection and skip email configuration",
-    "status": "completed"
+    "content": "Add Lucide icon logo next to Pythoughts branding",
+    "status": "pending"
   },
   {
-    "content": "Run database migrations to set up schema",
-    "status": "completed"
+    "content": "Implement dark theme toggle with consistent styling",
+    "status": "pending"
   },
   {
-    "content": "Update supervisor configuration to run Astro app instead of FastAPI/React",
-    "status": "completed"
+    "content": "Add macOS terminal-style traffic dots to UI components",
+    "status": "pending"
   },
   {
-    "content": "Start services and verify the app is running",
-    "status": "completed"
+    "content": "Ensure all icons use Lucide React consistently",
+    "status": "pending"
   },
   {
-    "content": "Test the application and fix any issues",
-    "status": "completed"
+    "content": "Test admin dashboard access and functionality",
+    "status": "pending"
+  },
+  {
+    "content": "Verify post/blog moderation features",
+    "status": "pending"
+  },
+  {
+    "content": "Test complete user registration flow with email",
+    "status": "pending"
   }
 ]
