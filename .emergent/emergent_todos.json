@@ -1,0 +1,30 @@
+[
+  {
+    "content": "Set up PostgreSQL database and create pythoughts database with user",
+    "status": "in_progress"
+  },
+  {
+    "content": "Install dependencies in /app/Go_Lab1 directory using yarn",
+    "status": "pending"
+  },
+  {
+    "content": "Create .env file with PostgreSQL connection and skip email configuration",
+    "status": "pending"
+  },
+  {
+    "content": "Run database migrations to set up schema",
+    "status": "pending"
+  },
+  {
+    "content": "Update supervisor configuration to run Astro app instead of FastAPI/React",
+    "status": "pending"
+  },
+  {
+    "content": "Start services and verify the app is running",
+    "status": "pending"
+  },
+  {
+    "content": "Test the application and fix any issues",
+    "status": "pending"
+  }
+]
