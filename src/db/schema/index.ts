@@ -4,6 +4,7 @@ export * from './sessions';
 export * from './posts';
 export * from './categories';
 export * from './comments';
+export * from './media';
 
 // Re-export common types
 export type {
@@ -27,3 +28,12 @@ export type {
 } from './categories';
 
 export type { Comment, NewComment } from './comments';
+
+export type {
+  MediaFile,
+  NewMediaFile,
+  MediaThumbnail,
+  NewMediaThumbnail,
+  VideoEmbed,
+  NewVideoEmbed,
+} from './media';
