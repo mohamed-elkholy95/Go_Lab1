@@ -1,30 +1,30 @@
 [
   {
     "content": "Update hero banner with Python/tech gradient colors",
-    "status": "in_progress"
+    "status": "completed"
   },
   {
     "content": "Add Python-style terminal prompts (>>> and ...)",
-    "status": "pending"
+    "status": "completed"
   },
   {
     "content": "Implement Python blue/yellow accent colors",
-    "status": "pending"
+    "status": "completed"
   },
   {
     "content": "Add tech-inspired code blocks and syntax styling",
-    "status": "pending"
+    "status": "completed"
   },
   {
     "content": "Update buttons with Python command style",
-    "status": "pending"
+    "status": "completed"
   },
   {
     "content": "Add animated tech background patterns",
-    "status": "pending"
+    "status": "completed"
   },
   {
     "content": "Test complete Python-themed experience",
-    "status": "pending"
+    "status": "in_progress"
   }
 ]
