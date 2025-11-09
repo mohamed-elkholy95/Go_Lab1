@@ -55,27 +55,22 @@ echo ""
 # Database Schema Migration
 # ============================================================================
 
-echo "📊 Synchronizing database schema..."
-echo "   Using Drizzle Kit push with --force flag (non-interactive)"
+echo "📊 Running professional database migration handler..."
+echo "   This will validate, migrate, and verify the database schema"
 echo ""
 
-# Run drizzle push with error handling
-if npm run db:push 2>&1; then
+# Run professional migration handler with comprehensive logging
+if npm run db:migrate:pro; then
   echo ""
-  echo "✅ Database schema synchronized successfully"
+  echo "✅ Migration handler completed successfully"
 else
-  PUSH_EXIT_CODE=$?
+  MIGRATION_EXIT_CODE=$?
   echo ""
-  echo "❌ ERROR: Database schema push failed with exit code: $PUSH_EXIT_CODE"
+  echo "❌ ERROR: Migration handler failed with exit code: $MIGRATION_EXIT_CODE"
   echo ""
-  echo "Common causes:"
-  echo "  1. Database connection failed (check DATABASE_URL)"
-  echo "  2. Database user lacks CREATE TABLE permissions"
-  echo "  3. Network connectivity issues"
-  echo "  4. Schema validation errors"
-  echo ""
-  echo "Check the error output above for details"
-  exit $PUSH_EXIT_CODE
+  echo "The migration handler provides detailed error messages above."
+  echo "Please review the output and fix any issues before restarting."
+  exit $MIGRATION_EXIT_CODE
 fi
 
 echo ""
