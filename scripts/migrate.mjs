@@ -48,6 +48,35 @@ function sleep(ms) {
 }
 
 /**
+ * Create database connection pool based on DATABASE_URL
+ * Auto-detects Neon serverless vs standard PostgreSQL
+ */
+async function createDatabasePool() {
+  const connectionString = process.env.DATABASE_URL;
+  const isNeonServerless = connectionString.includes('neon.tech') || connectionString.includes('neon.aws');
+
+  if (isNeonServerless) {
+    // Use Neon serverless driver
+    log.detail('Detected Neon serverless database');
+    const { Pool, neonConfig } = await import('@neondatabase/serverless');
+    const ws = await import('ws');
+    neonConfig.webSocketConstructor = ws.default;
+    return new Pool({ connectionString });
+  } else {
+    // Use standard PostgreSQL driver
+    log.detail('Detected standard PostgreSQL database');
+    const pkg = await import('pg');
+    const Pool = pkg.default.Pool;
+    return new Pool({
+      connectionString,
+      ssl: connectionString.includes('sslmode=require')
+        ? { rejectUnauthorized: false }
+        : false
+    });
+  }
+}
+
+/**
  * Parse DATABASE_URL into components
  */
 function parseDatabaseUrl(url) {
@@ -131,13 +160,7 @@ async function testDatabaseConnection() {
         log.info(`Retry attempt ${attempt}/${maxRetries}...`);
       }
 
-      const { Pool, neonConfig } = await import('@neondatabase/serverless');
-      const ws = await import('ws');
-
-      // Configure neon for WebSocket support
-      neonConfig.webSocketConstructor = ws.default;
-
-      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      const pool = await createDatabasePool();
 
       log.detail('Testing query execution...');
       const result = await pool.query('SELECT version() as version, now() as current_time');
@@ -218,11 +241,7 @@ async function checkCurrentSchema() {
   log.section('Current Schema Analysis');
 
   try {
-    const { Pool, neonConfig } = await import('@neondatabase/serverless');
-    const ws = await import('ws');
-    neonConfig.webSocketConstructor = ws.default;
-
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const pool = await createDatabasePool();
 
     // Get existing tables
     const tablesResult = await pool.query(`
@@ -300,11 +319,7 @@ async function validateBetterAuthSchema() {
   };
 
   try {
-    const { Pool, neonConfig } = await import('@neondatabase/serverless');
-    const ws = await import('ws');
-    neonConfig.webSocketConstructor = ws.default;
-
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const pool = await createDatabasePool();
 
     const issues = [];
 
@@ -442,11 +457,7 @@ async function postMigrationValidation() {
   log.section('Post-Migration Validation');
 
   try {
-    const { Pool, neonConfig } = await import('@neondatabase/serverless');
-    const ws = await import('ws');
-    neonConfig.webSocketConstructor = ws.default;
-
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const pool = await createDatabasePool();
 
     // Expected schema
     const expectedTables = [
